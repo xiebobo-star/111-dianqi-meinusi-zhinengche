@@ -1,0 +1,31 @@
+# ---- ADS / Eclipse 编译产物 ----
+Debug/
+Release/
+.ads/
+*.launch
+*.o
+*.obj
+*.d
+*.elf
+*.hex
+*.map
+*.mdf
+*.opt
+*.src
+*.pre
+*.abs
+
+# ---- 编译器缓存 ----
+*.pch
+*.su
+
+# ---- 系统垃圾文件 ----
+Thumbs.db
+desktop.ini
+.DS_Store
+*~
+
+# ---- IDE ----
+.vscode/
+.idea/
+.settings/org.eclipse.core.resources.prefs
