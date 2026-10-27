@@ -1,0 +1,5 @@
+/Debug/
+/.metadata/
+*.log
+/tests/out/
+__pycache__/
