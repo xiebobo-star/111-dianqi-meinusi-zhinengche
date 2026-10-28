@@ -62,14 +62,20 @@
 #define MENU_UI_TITLE_Y             (2)                         // 标题 y 坐标
 #define MENU_UI_ITEM_Y0             (38)                        // 第一行菜单项的 y 坐标
 #define MENU_UI_BAR_H               (18)                        // 选中高亮条高度
-#define MENU_UI_LINE_H              (20)                        // 信息页每行高度
+#define MENU_UI_LINE_H              (20)                        // 底部提示行占的高度
+#define MENU_UI_INFO_Y0             (32)                        // 信息页第一行的 y
+#define MENU_UI_INFO_LINE_H         (20)                        // 信息页行距
+#define MENU_UI_INFO_BOTTOM         (292)                       // 信息页最后一行允许的起始 y（再往下就压到提示行了）
 #else
     // 1.8 寸 TFT180：128 x 160，一屏 7 行（行高压到 17 像素，舵机那组的 7 项刚好一屏放完）
 #define MENU_UI_ROW_H               (17)                        // 每行高度（16 像素字 + 1 像素间距）
 #define MENU_UI_TITLE_Y             (2)                         // 标题 y 坐标
 #define MENU_UI_ITEM_Y0             (22)                        // 第一行菜单项的 y 坐标
-#define MENU_UI_BAR_H               (16)                        // 选中高亮条高度（正好盖住 16 像素字）
-#define MENU_UI_LINE_H              (16)                        // 信息页每行高度
+#define MENU_UI_BAR_H               (17)                        // 选中高亮条高度（和行高一样，否则字最下面一行掉在条外）
+#define MENU_UI_LINE_H              (18)                        // 底部提示行占的高度（提示画在 160-18+2=144，16 像素字正好到 159）
+#define MENU_UI_INFO_Y0             (22)                        // 信息页第一行的 y（再往上会压到标题）
+#define MENU_UI_INFO_LINE_H         (17)                        // 信息页行距（16 像素字 + 1 像素缝）
+#define MENU_UI_INFO_BOTTOM         (124)                       // 信息页最后一行允许的起始 y（22+6*17，16 像素字到 139）
 #endif
 #define MENU_TOAST_MS               (1500)                      // 提示框（保存成功之类）自动消失时间 ms
 

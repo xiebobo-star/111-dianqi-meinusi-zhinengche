@@ -13,15 +13,27 @@
 *                         屏幕会看到某一行从 1 变 0、右边计数 +1，那一行的引脚名就是这个按键真正的引脚
 *                         屏幕没亮就看串口（P14_0/P14_1，115200），会打 "KEY P11_3 DOWN cnt=1"
 *
-*                   屏幕型号：1 = 2 寸 IPS200（默认）   0 = 1.8 寸 TFT180（两块屏驱动不通用）
+*                   屏幕型号：1 = 2 寸 IPS200   0 = 1.8 寸 TFT180（现在用这块；128x160 换 6x8 字体才放得下 12 行）
 ********************************************************************************************************************/
 #include "zf_common_headfile.h"
 
 #define KEYTEST_USE_IPS200          (0)                         // 1 = IPS200 (240x320)   0 = TFT180 (128x160)
 
 #define KT_NUM_MAX                  (12)                        // 最多测几个脚
-#define KT_ROW_H                    (20)                        // 每行高度（8x16 字体）
-#define KT_Y0                       (40)                        // 第一行的 y
+
+#if (1 == KEYTEST_USE_IPS200)                                   // 240x320：8x16 字体，12 行放得下
+    #define KT_Y0                       (40)                        // 第一行的 y
+    #define KT_ROW_H                    (20)                        // 每行高度
+    #define KT_X_LV                     (80)                        // 电平那一列
+    #define KT_X_CNT                    (112)                       // 次数那一列
+    #define KT_LAST_GAP                 (8)                         // 最后一行再往下几像素
+#else                                                           // 128x160：只有 160 高，12 行必须换 6x8 字体才放得下
+    #define KT_Y0                       (17)
+    #define KT_ROW_H                    (11)
+    #define KT_X_LV                     (52)
+    #define KT_X_CNT                    (66)
+    #define KT_LAST_GAP                 (2)
+#endif
 
 typedef struct
 {
@@ -72,8 +84,8 @@ static void kt_draw_row (uint8 i)
 #else
     tft180_set_color(pen, RGB565_BLACK);
     tft180_show_string(0, y, kt_pin[i].name);
-    tft180_show_int(80, y, (int32)kt_now[i], 1);
-    tft180_show_int(96, y, (int32)kt_cnt[i], 3);
+    tft180_show_int(KT_X_LV,  y, (int32)kt_now[i], 1);
+    tft180_show_int(KT_X_CNT, y, (int32)kt_cnt[i], 4);
 #endif
 }
 
@@ -82,7 +94,7 @@ static void kt_draw_row (uint8 i)
 //-------------------------------------------------------------------------------------------------------------------
 static void kt_draw_last (void)
 {
-    uint16 y = (uint16)(KT_Y0 + KT_NUM * KT_ROW_H + 8);
+    uint16 y = (uint16)(KT_Y0 + KT_NUM * KT_ROW_H + KT_LAST_GAP);
 
 #if (1 == KEYTEST_USE_IPS200)
     ips200_set_color(RGB565_GREEN, RGB565_BLACK);
@@ -130,11 +142,13 @@ int core0_main (void)
 #else
     tft180_init();
     tft180_set_dir(TFT180_PORTAIT);
-    tft180_set_font(TFT180_8X16_FONT);
+    tft180_set_font(TFT180_6X8_FONT);                           // 128x160 要放 12 行 + 标题 + LAST 行，只能用 6x8
     tft180_set_color(RGB565_WHITE, RGB565_BLACK);
     tft180_full(RGB565_BLACK);
-    tft180_show_string(0, 0,  "KEY PIN TEST");
-    tft180_show_string(0, 20, "pin    L cnt");
+    tft180_show_string(0, 0, "KEY PIN TEST");
+    tft180_show_string(0,        8, "pin");
+    tft180_show_string(KT_X_LV,  8, "L");
+    tft180_show_string(KT_X_CNT, 8, "cnt");
 #endif
 
     for (i = 0; i < KT_NUM; i ++)

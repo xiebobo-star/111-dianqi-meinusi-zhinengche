@@ -200,9 +200,9 @@ int core0_main(void)
     {
         CAM_SCREEN_CLEAR();
         CAM_SCREEN_STRING(0, 40,  "CAMERA INIT FAIL");
-        CAM_SCREEN_STRING(0, 64,  "1 check 3V3CAM LED");
-        CAM_SCREEN_STRING(0, 84,  "2 swap TXD and RXD");
-        CAM_SCREEN_STRING(0, 104, "3 check D0-D7 order");
+        CAM_SCREEN_STRING(0, 64,  "1 check 3V3 LED");
+        CAM_SCREEN_STRING(0, 84,  "2 swap TXD/RXD");
+        CAM_SCREEN_STRING(0, 104, "3 check D0-D7");
         printf("mt9v03x_init() FAIL: check 3.3V power and TXD/RXD wiring\r\n");
 
         while(TRUE)                                             // 初始化失败就停在这里闪灯，不要继续往下跑

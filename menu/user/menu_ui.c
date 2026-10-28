@@ -577,6 +577,7 @@ static void ui_draw_overview (void)
 
 static char  ui_info_line[UI_INFO_LINE_MAX][UI_INFO_LINE_LEN];
 static uint8 ui_info_num;
+static uint8 ui_info_top;                     // 信息页从第几行开始画（窄屏一屏放不下时用 1/2 键翻）
 
 static void ui_info_clear (void)
 {
@@ -706,10 +707,10 @@ static void ui_info_build (uint8 page)
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     画一行文字（超宽自动折行），返回下一行的 y
 //-------------------------------------------------------------------------------------------------------------------
-static uint16 ui_draw_text_line (uint16 y, const char *str)
+static uint16 ui_draw_text_line (uint16 y, const char *str, uint16 y_limit, uint16 x0)
 {
     uint16 sw  = menu_display_width();
-    uint16 px  = 4;
+    uint16 px  = x0;
     uint8  i   = 0;
     char   ch[3];
 
@@ -736,14 +737,41 @@ static uint16 ui_draw_text_line (uint16 y, const char *str)
 
         if ((uint16)(px + cw) > sw)                     // 这一行满了，换行
         {
-            px = 4;
-            y  = (uint16)(y + MENU_UI_LINE_H);
+            px = x0;
+            y  = (uint16)(y + MENU_UI_INFO_LINE_H);
+        }
+        if (y > y_limit)                                // 超过这一页允许的最后一行：不再画（再画就压到提示行，甚至超屏触发断言）
+        {
+            break;
         }
         menu_display_cn(px, y, ch);
         px = (uint16)(px + cw);
         i  = (uint8)(i + bytes);
     }
-    return (uint16)(y + MENU_UI_LINE_H);
+    return (uint16)(y + MENU_UI_INFO_LINE_H);
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介     信息页一屏最多画几行
+//-------------------------------------------------------------------------------------------------------------------
+static uint8 ui_info_rows (void)
+{
+    return (uint8)((uint16)((MENU_UI_INFO_BOTTOM - MENU_UI_INFO_Y0) / MENU_UI_INFO_LINE_H) + 1);
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介     信息页标题右边显示「当前行/总行数」，一屏放得下就不显示
+//-------------------------------------------------------------------------------------------------------------------
+static const char *ui_info_scroll_text (void)
+{
+    static char buf[8];
+
+    if (ui_info_num > ui_info_rows())
+    {
+        snprintf(buf, sizeof(buf), "%d/%d", (int)(ui_info_top + 1), (int)ui_info_num);
+        return buf;
+    }
+    return NULL;
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -752,8 +780,9 @@ static uint16 ui_draw_text_line (uint16 y, const char *str)
 static void ui_draw_info (void)
 {
     const char *title;
-    uint16 y = (uint16)(MENU_UI_ITEM_Y0 - 6);
+    uint16 y = (uint16)(MENU_UI_INFO_Y0);
     uint8  i;
+    uint8  vis;
 
     switch (ui_page)
     {
@@ -768,13 +797,16 @@ static void ui_draw_info (void)
 
     ui_info_build(ui_page);
 
-    menu_display_clear();
-    ui_draw_title(title, NULL);
+    if (ui_info_top >= ui_info_num) { ui_info_top = 0; }
 
-    for (i = 0; i < ui_info_num; i ++)
+    menu_display_clear();
+    ui_draw_title(title, ui_info_scroll_text());
+
+    vis = ui_info_rows();
+    for (i = ui_info_top; i < ui_info_num; i ++)
     {
-        if (y > (uint16)(menu_display_height() - MENU_UI_LINE_H - 4)) { break; }
-        y = ui_draw_text_line(y, ui_info_line[i]);
+        if ((uint8)(i - ui_info_top) >= vis) { break; }
+        y = ui_draw_text_line(y, ui_info_line[i], MENU_UI_INFO_BOTTOM, 4);
     }
     ui_draw_hint();
 }
@@ -800,8 +832,8 @@ static const char *ui_popup_text (void)
 {
     switch (ui_popup)
     {
-        case MENU_POPUP_DEFAULT_GROUP: return "本组恢复默认值?";
-        case MENU_POPUP_DEFAULT_ALL:   return "全部恢复默认值?";
+        case MENU_POPUP_DEFAULT_GROUP: return "恢复本组默认?";
+        case MENU_POPUP_DEFAULT_ALL:   return "全部恢复默认?";
         default:                       return "确认?";
     }
 }
@@ -824,7 +856,7 @@ static void ui_draw_popup_box (void)
 
     menu_display_set_color(MENU_COLOR_EDIT, MENU_COLOR_BG);
     y = (uint16)(by + 4);
-    y = ui_draw_text_line(y, ui_popup_text());
+    y = ui_draw_text_line(y, ui_popup_text(), (uint16)(by + bh - MENU_UI_LINE_H), (uint16)(bx + 4));
 
     menu_display_set_color(MENU_COLOR_PEN, MENU_COLOR_BG);
     menu_display_cn(12, (uint16)(by + bh - MENU_UI_LINE_H - 2), "3=确定  4=取消");
@@ -999,6 +1031,7 @@ static void ui_menu_enter (void)
 
         case MENU_ACT_INFO:
             ui_page      = nd->arg;
+            ui_info_top  = 0;
             ui_state     = MENU_UI_STATE_INFO;
             ui_need_draw = 1;
             break;
@@ -1296,8 +1329,17 @@ static void ui_process_key (void)
                 break;
             }
 
+            if (0 != k_up)                                                          // 1 = 往上翻一行
+            {
+                if (0 != ui_info_top) { ui_info_top --; ui_need_draw = 1; }
+            }
+            if (0 != k_down)                                                        // 2 = 往下翻一行
+            {
+                if ((uint8)(ui_info_top + 1) < ui_info_num) { ui_info_top ++; ui_need_draw = 1; }
+            }
             if ((0 != k_back) || (0 != k_ok))
             {
+                ui_info_top  = 0;
                 ui_state     = MENU_UI_STATE_MENU;
                 ui_need_draw = 1;
             }
