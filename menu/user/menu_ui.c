@@ -4,17 +4,18 @@
 *
 * ²Ëµ¥½á¹¹£¨Ö÷²Ëµ¥ 3 Ïî£¬Ã¿ÏîÏÂÃæ 2~3 ¸ö×Ó²Ëµ¥£©£º
 *   Ö÷²Ëµ¥
-*     ©À©¤ ²ÎÊıÉèÖÃ ©¤ µç»ú²ÎÊı / ´«¸ĞÆ÷²ÎÊı / ÏµÍ³²ÎÊı£¨¸÷×Ô½øÈ¥¿ÉÒÔ¸Ä£¬Ä©Î²»¹ÓĞ¡¸±£´æ±¾×é²ÎÊı / »Ö¸´±¾×éÄ¬ÈÏ¡¹£©
-*     ©¦            ©¸ ±£´æÈ«²¿²ÎÊı / »Ö¸´È«²¿Ä¬ÈÏ£¨´øµ¯´°È·ÈÏ£©
+*     ©À©¤ ²ÎÊıÉèÖÃ ©¤ Servo / ´«¸ĞÆ÷²ÎÊı / ÏµÍ³²ÎÊı£¨½øÈ¥Ö±½Ó¸Ä£¬¸ÄÍê×Ô¶¯´æ Flash£¬Ã»ÓĞ¡¸±£´æ¡¹ÕâÒ»ĞĞ£©
+*     ©¦            ©¸ »Ö¸´È«²¿Ä¬ÈÏ£¨´øµ¯´°È·ÈÏ£©
 *     ©À©¤ ×´Ì¬²é¿´ ©¤ ÔËĞĞ×´Ì¬ / ´æ´¢×´Ì¬ / ²ÎÊı×ÜÀÀ
 *     ©¸©¤ ÏµÍ³ĞÅÏ¢ ©¤ °æ±¾ĞÅÏ¢ / Ó²¼şĞÅÏ¢ / ²Ù×÷ËµÃ÷
 *
 * °´¼ü£º
 *   ²Ëµ¥Àï      °´¼ü1 = ÉÏÑ¡   °´¼ü2 = ÏÂÑ¡   °´¼ü3 = È·¶¨   °´¼ü4 = ·µ»ØÉÏÒ»²ã
 *   ²ÎÊıÒ³Ãæ    °´¼ü1/2 = ÉÏÏÂÑ¡   °´¼ü3 = ½øÈëĞŞ¸Ä£¨ĞĞ±ä»Æ¡¢Á½²à³öÏÖ¼ıÍ·£©
-*   ĞŞ¸ÄÖĞ      °´¼ü1 = ¼ÓÒ»µµ   °´¼ü2 = ¼õÒ»µµ   °´¼ü3 = È·ÈÏ   °´¼ü4 = È¡Ïû±¾´ÎĞŞ¸Ä
-*               ¸ÄÍêÒÔºó±êÌâÓÒ±ß»áÏÔÊ¾¡¸Î´±£´æ¡¹£¬±ØĞëÔÚ²ÎÊıÒ³ÃæÑ¡¡¸±£´æ±¾×é²ÎÊı¡¹»òÖ÷²Ëµ¥¡¸±£´æÈ«²¿²ÎÊı¡¹£¬
-*               µ¯´°°´È·¶¨²Å»áĞ´½øÆ¬ÄÚ Flash£¨µôµç²»¶ª£©
+*   ĞŞ¸ÄÖĞ      °´¼ü1 = ¼ÓÒ»µµ   °´¼ü2 = ¼õÒ»µµ   °´¼ü3 = Íê³É   °´¼ü4 = Íê³É£¨Ò»Ñù£¬ÍË³öĞŞ¸Ä£©
+*               ¡ï Ã¿°´Ò»ÏÂ¾ÍÒÑ¾­ÉúĞ§£¨¶æ»úµ±³¡¾Í¶¯£©£¬ÍË³öĞŞ¸Ä½çÃæÁ¢¿ÌĞ´½øÆ¬ÄÚ Flash£¬
+*                 Í£ÊÖ 0.8s Ò²»á×Ô¶¯Ğ´Ò»´Î£¬ËùÒÔ±êÌâÓÒ±ßºÜ¿ì¾ÍÊÇ¡¸ÒÑ±£´æ¡¹£¬²»ÓÃÔÙÕÒ±£´æ°´Å¥
+*               ¡ï Ë¢ÆÁÖ»ÖØ»­¶¯¹ıµÄÄÇÒ»Á½ĞĞ£¬²»ÕûÆÁÖØÀ´£¬ËùÒÔ°´×¡¼Ó¼õÊÇ¸úÊÖµÄ
 *   ³¤°´°´¼ü4 = ÈÎºÎÒ³ÃæÖ±½Ó»ØÖ÷²Ëµ¥
 *
 * ÊÓ¾õ·´À¡£ºÑ¡ÖĞµÄÏîÊÇÒ»¸öÌîÉ«¸ßÁÁÌõ + ×ó±ß¡¸>¡¹¼ıÍ·£»×Ó²Ëµ¥ÓÒ²à»¹ÓĞÒ»¸ö¡¸>¡¹£»ÕıÔÚĞŞ¸ÄµÄÏîÊÇ»ÆÉ«µÄ + Á½²à¼ıÍ·
@@ -28,6 +29,9 @@
 #include "menu_ui.h"
 
 #include <stdarg.h>
+
+// »­²ÎÊıÒ³µÄÒ»ĞĞ£¨ÕûÆÁÖØ»­ºÍ¾Ö²¿ÖØ»­¹²ÓÃ£©£¬¶¨ÒåÔÚºóÃæ£¬ÕâÀïÏÈÉùÃ÷
+static void ui_draw_param_row (uint8 r);
 
 // ============================================ ´®¿Úµ÷ÊÔºê ============================================
 // ±àÒë¿ª¹Ø MENU_SERIAL_DEBUG ÔÚ menu_config.h£»ÔËĞĞ¿ª¹ØÊÇ²Ëµ¥ÀïµÄ¡¸´®¿Úµ÷ÊÔ¡¹²ÎÊı£¨Ä¬ÈÏ¿ª£©
@@ -48,7 +52,6 @@ typedef enum
     MENU_ACT_PARAM_GROUP,                   // ´ò¿ª²ÎÊı×é±à¼­Ò³£¨arg = ×éºÅ£©
     MENU_ACT_INFO,                          // ´ò¿ªĞÅÏ¢Ò³£¨arg = Ò³ºÅ£©
     MENU_ACT_OVERVIEW,                      // ´ò¿ª²ÎÊı×ÜÀÀÒ³
-    MENU_ACT_SAVE_ALL,                      // ±£´æÈ«²¿²ÎÊı£¨µ¯´°È·ÈÏ£©
     MENU_ACT_DEFAULT_ALL,                   // È«²¿»Ö¸´Ä¬ÈÏÖµ£¨µ¯´°È·ÈÏ£©
 }menu_action_enum;
 
@@ -77,7 +80,6 @@ static const menu_node_struct menu_param_setting[] =
     {"µç»ú²ÎÊı",     MENU_ACT_PARAM_GROUP,   NULL, 0, 0},
     {"´«¸ĞÆ÷²ÎÊı",   MENU_ACT_PARAM_GROUP,   NULL, 0, 1},
     {"ÏµÍ³²ÎÊı",     MENU_ACT_PARAM_GROUP,   NULL, 0, 2},
-    {"±£´æÈ«²¿²ÎÊı", MENU_ACT_SAVE_ALL,      NULL, 0, 0},
     {"»Ö¸´È«²¿Ä¬ÈÏ", MENU_ACT_DEFAULT_ALL,   NULL, 0, 0},
 };
 
@@ -99,7 +101,7 @@ static const menu_node_struct menu_system_info[] =
 // ---------------------------------------------------------------- µÚ 1 ²ã£ºÖ÷²Ëµ¥ ------------------------------------------------
 static const menu_node_struct menu_main_list[] =
 {
-    {"²ÎÊıÉèÖÃ", MENU_ACT_SUBMENU, menu_param_setting, 5, 0},
+    {"²ÎÊıÉèÖÃ", MENU_ACT_SUBMENU, menu_param_setting, 4, 0},
     {"×´Ì¬²é¿´", MENU_ACT_SUBMENU, menu_status_view,   3, 0},
     {"ÏµÍ³ĞÅÏ¢", MENU_ACT_SUBMENU, menu_system_info,   4, 0},
 };
@@ -118,9 +120,7 @@ typedef enum
 
 typedef enum
 {
-    MENU_POPUP_SAVE_GROUP = 0,              // È·ÈÏ±£´æ±¾×é
-    MENU_POPUP_DEFAULT_GROUP,               // È·ÈÏ±¾×é»Ö¸´Ä¬ÈÏ
-    MENU_POPUP_SAVE_ALL,                    // È·ÈÏ±£´æÈ«²¿
+    MENU_POPUP_DEFAULT_GROUP = 0,           // È·ÈÏ±¾×é»Ö¸´Ä¬ÈÏ
     MENU_POPUP_DEFAULT_ALL,                 // È·ÈÏÈ«²¿»Ö¸´Ä¬ÈÏ
 }menu_popup_enum;
 
@@ -145,18 +145,27 @@ static uint8              ui_group;                         // µ±Ç°ÕıÔÚ¿´µÄ²ÎÊı×
 static uint8              ui_row;                           // ²ÎÊıÒ³ / ×ÜÀÀÒ³µ±Ç°ĞĞ
 static uint8              ui_top;                           // ²ÎÊıÒ³ / ×ÜÀÀÒ³¹ö¶¯µÄµÚÒ»ĞĞ
 static int32              ui_edit_value;                    // ĞŞ¸ÄÖĞµÄÖµ£¨°´È·¶¨²ÅĞ´½ø²ÎÊı±í£©
+static uint8              ui_edit_coarse;                   // 1 = ÕâÒ»ÂÖ°´×¡ÒÑ¾­½øÈë³¤°´´ó²½£¨²½½ø x10£©
 static uint8              ui_page;                          // ĞÅÏ¢Ò³±àºÅ
 static uint32             ui_ms;                            // ÉÏµç¾­¹ıµÄºÁÃëÊı£¨10ms ÖĞ¶ÏÀÛ¼Ó£©
+static uint32             ui_run_ms;                        // ÔËĞĞ×´Ì¬Ò³ÉÏ´ÎÖØ»­µÄÊ±¿Ì£¨²ÎÊıÖµÊµÊ±Ë¢ĞÂÓÃ£©
 static uint32             ui_toast_ms;                      // ÌáÊ¾¿ò³öÏÖµÄÊ±¿Ì
 static const char        *ui_toast_text;                    // ÌáÊ¾¿òÎÄ×Ö
 static uint16             ui_toast_color;                   // ÌáÊ¾¿òÎÄ×ÖÑÕÉ«
 static uint8              ui_need_draw;                     // 1 = ĞèÒªÖØ»­ÕûÆÁ
 static uint32             ui_keytest_sig;                    // °´¼ü×Ô¼ìÒ³µÄ¡¸×´Ì¬Ç©Ãû¡¹£¬±äÁË²ÅÖØ»­
+static uint32             ui_last_key_ms;                    // ×î½üÒ»´Î°´¼ü¶¯×÷µÄÊ±¿Ì£¨Í£ÊÖÒ»»á¶ù¾Í×Ô¶¯´æ Flash£©
+static uint8              ui_save_now;                       // 1 = ÕâÒ»È¦Ö÷Ñ­»·Á¢¿Ì´æÒ»´Î Flash
+static uint8              ui_save_block;                     // 1 = ÉÏ´Î´æÊ§°ÜÁË£¬µÈÏÂ´Î¸Ä²ÎÊıÔÙÖØÊÔ
+static uint8              ui_title_dirty;                    // 1 = ±êÌâÓÒ±ß¡¸Î´±£´æ / ÒÑ±£´æ¡¹ÒªÖØ»­
+
+#define UI_ROW_NONE             (0xff)                      // ¡¸Ã»ÓĞÒª¾Ö²¿ÖØ»­µÄĞĞ¡¹
+static uint8              ui_row_dirty[2] = {UI_ROW_NONE, UI_ROW_NONE};   // Òª¾Ö²¿ÖØ»­µÄĞĞºÅ£¨Ò»ÆÁ×î¶àÁ½ĞĞÒ»Æğ±ä£©
 
 #define MENU_HINT_WIDE_MENU     ("1=ÉÏÑ¡ 2=ÏÂÑ¡ 3=È·¶¨ 4=·µ»Ø")
 #define MENU_HINT_NARROW_MENU   ("1ÉÏ 2ÏÂ 3Ñ¡ 4·µ")
-#define MENU_HINT_WIDE_EDIT     ("1=¼Ó 2=¼õ 3=È·¶¨ 4=È¡Ïû")
-#define MENU_HINT_NARROW_EDIT   ("1¼Ó 2¼õ 3¶¨ 4Ïû")
+#define MENU_HINT_WIDE_EDIT     ("1=¼Ó 2=¼õ 3/4=ÍË³ö")
+#define MENU_HINT_NARROW_EDIT   ("1¼Ó 2¼õ 3/4ÍË")
 
 //-------------------------------------------------------------------------------------------------------------------
 // º¯Êı¼ò½é     Ò»ÆÁÄÜÏÔÊ¾¼¸ĞĞ
@@ -177,6 +186,36 @@ static void ui_scroll_fix (uint8 num)
     if (ui_row < ui_top)                     { ui_top = ui_row; }
     if (ui_row >= (uint8)(ui_top + vis))     { ui_top = (uint8)(ui_row - vis + 1); }
     if (ui_top > num)                        { ui_top = 0; }
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     ¼ÇÏÂ¡¸ÕâÒ»ĞĞ±äÁË£¬ĞèÒªÖØ»­¡¹
+// ±¸×¢ĞÅÏ¢     Ò»ÆÁ×î¶àÁ½ĞĞ»áÍ¬Ê±±ä£¨Âö¿í + »»Ëã³öÀ´µÄ½Ç¶È£©£¬ËùÒÔÖ»¿ªÁ½¸ö²Û¡£
+//              ¾Ö²¿ÖØ»­±ÈÕûÆÁ clear + È«²¿ÖØ»­¿ìÊ®¼¸±¶£¬°´×¡¼Ó¼õ²Å²»»áÒ»¶ÙÒ»¶ÙµÄ
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_mark_row (uint8 r)
+{
+    if ((UI_ROW_NONE == ui_row_dirty[0]) || (ui_row_dirty[0] == r)) { ui_row_dirty[0] = r; return; }
+    if ((UI_ROW_NONE == ui_row_dirty[1]) || (ui_row_dirty[1] == r)) { ui_row_dirty[1] = r; }
+}
+
+static void ui_clear_dirty_rows (void)
+{
+    ui_row_dirty[0] = UI_ROW_NONE;
+    ui_row_dirty[1] = UI_ROW_NONE;
+}
+
+static uint8 ui_need_partial (void)
+{
+    if (UI_ROW_NONE != ui_row_dirty[0]) { return 1; }
+    if (UI_ROW_NONE != ui_row_dirty[1]) { return 1; }
+    return (0 != ui_title_dirty) ? (1) : (0);
+}
+
+// ¸ÄÕâÒ»ÏîÊ±£¬±¾×é»¹ÓĞÄÄÒ»ÏîµÄÊıÖµ»á¸ú×Å±ä£¨±¾¹¤³ÌµÄ²ÎÊı±íÀïÃ»ÓĞÁª¶¯Ïî£©
+static void ui_mark_linked_row (uint8 item)
+{
+    (void)item;
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -242,6 +281,34 @@ static void ui_draw_title (const char *title, const char *right)
 }
 
 //-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     ±êÌâÓÒ±ßÄÇÈı¸ö×Ö£¨µ±Ç°ÊÇ¡¸Î´±£´æ / ÒÑ±£´æ / ´æÊ§°Ü¡¹£©
+//-------------------------------------------------------------------------------------------------------------------
+static const char *ui_title_state_text (void)
+{
+    if (0 != ui_save_block)                             { return "´æÊ§°Ü"; }
+    if (0 != menu_param_group_dirty(ui_group))           { return "Î´±£´æ"; }
+    return "ÒÑ±£´æ";
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     Ö»ÖØ»­±êÌâÓÒ±ßÄÇÈı¸ö×Ö
+// ±¸×¢ĞÅÏ¢     ×Ô¶¯±£´æÖ®ºó°Ñ¡¸Î´±£´æ¡¹Ë¢³É¡¸ÒÑ±£´æ¡¹£¬²»ÓÃÕûÆÁÖØ»­
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_draw_title_state (void)
+{
+    uint16      sw    = menu_display_width();
+    const char *right = ui_title_state_text();
+    uint16      w     = 56;                                     // ¡¸Î´±£´æ¡¹3 ¸öºº×Ö = 48px£¬ÁôµãÓàÁ¿
+
+    if ((uint16)(sw - w) < (uint16)(76)) { w = 40; }             // ¼«Õ­ÆÁ¶µµ×
+
+    menu_display_fill((uint16)(sw - w), 0, w, 20, MENU_COLOR_BG);
+    menu_display_set_color(MENU_COLOR_TITLE, MENU_COLOR_BG);
+    menu_display_cn((uint16)(sw - menu_display_text_width(right) - 4), MENU_UI_TITLE_Y, right);
+    menu_display_set_color(MENU_COLOR_PEN, MENU_COLOR_BG);
+}
+
+//-------------------------------------------------------------------------------------------------------------------
 // º¯Êı¼ò½é     »­Ò»ĞĞ²Ëµ¥ / ²ÎÊı
 // ²ÎÊıËµÃ÷     text        ÎÄ×Ö
 // ²ÎÊıËµÃ÷     value       ÊıÖµ×Ö·û´®£¨NULL = ÕâÒ»ĞĞÃ»ÓĞÊıÖµ£©
@@ -288,31 +355,56 @@ static void ui_draw_row (uint16 y, const char *text, const char *value, uint8 se
 }
 
 //-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     »­²Ëµ¥ÁĞ±íµÄÒ»ĞĞ£¨ÕûÒ³ÖØ»­ºÍ¾Ö²¿ÖØ»­¹²ÓÃ£©
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_draw_menu_row (uint8 r)
+{
+    menu_level_struct *lv  = &menu_stack[menu_depth];
+    uint8              vis = ui_row_visible();
+
+    if ((r < lv->top) || ((uint8)(r - lv->top) >= vis)) { return; }          // ²»ÔÚ¿É¼û´°¿ÚÀï¾Í²»ÓÃ»­
+
+    ui_draw_row((uint16)(MENU_UI_ITEM_Y0 + (uint8)(r - lv->top) * MENU_UI_ROW_H), lv->node[r].text, NULL,
+                (r == lv->index) ? (1) : (0), 0, (MENU_ACT_SUBMENU == lv->node[r].action) ? (1) : (0));
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     Ö»ÖØ»­±êÌâÓÒ±ßµÄ¡¸µÚ¼¸Ïî / ¹²¼¸Ïî¡¹
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_draw_menu_counter (void)
+{
+    menu_level_struct *lv  = &menu_stack[menu_depth];
+    char               buf[12];
+    uint16             sw  = menu_display_width();
+
+    snprintf(buf, sizeof(buf), "%d/%d", (int)(lv->index + 1), (int)lv->num);
+
+    menu_display_fill((uint16)(sw - 44), 0, 44, 20, MENU_COLOR_BG);
+    menu_display_set_color(MENU_COLOR_TITLE, MENU_COLOR_BG);
+    menu_display_cn((uint16)(sw - menu_display_text_width(buf) - 4), MENU_UI_TITLE_Y, buf);
+    menu_display_set_color(MENU_COLOR_PEN, MENU_COLOR_BG);
+}
+
+//-------------------------------------------------------------------------------------------------------------------
 // º¯Êı¼ò½é     »­²Ëµ¥ÁĞ±íÒ³
 //-------------------------------------------------------------------------------------------------------------------
 static void ui_draw_menu (void)
 {
     menu_level_struct *lv = &menu_stack[menu_depth];
     uint8 vis = ui_row_visible();
-    char  buf[12];
     uint8 i;
 
     ui_scroll_fix(lv->num);
     menu_display_clear();
-
-    snprintf(buf, sizeof(buf), "%d/%d", (int)(lv->index + 1), (int)lv->num);
-    ui_draw_title(menu_title_stack[menu_depth], buf);
+    ui_draw_title(menu_title_stack[menu_depth], NULL);
+    ui_draw_menu_counter();
 
     if (vis > lv->num) { vis = lv->num; }
 
     for (i = 0; i < vis; i ++)
     {
-        uint8 r = (uint8)(lv->top + i);
-        const menu_node_struct *nd = &lv->node[r];
-
-        if (r >= lv->num) { break; }
-        ui_draw_row((uint16)(MENU_UI_ITEM_Y0 + i * MENU_UI_ROW_H), nd->text, NULL,
-                    (r == lv->index) ? (1) : (0), 0, (MENU_ACT_SUBMENU == nd->action) ? (1) : (0));
+        if ((uint8)(lv->top + i) >= lv->num) { break; }
+        ui_draw_menu_row((uint8)(lv->top + i));
     }
     ui_draw_hint();
 }
@@ -320,44 +412,51 @@ static void ui_draw_menu (void)
 //-------------------------------------------------------------------------------------------------------------------
 // º¯Êı¼ò½é     »­²ÎÊı×éÒ³Ãæ£¨²ÎÊıÏî + Ä©Î²Á½¸ö¶¯×÷ĞĞ£©
 //-------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     »­²ÎÊıÒ³µÄÒ»ĞĞ£¨²ÎÊıÏî / »Ö¸´±¾×éÄ¬ÈÏ£©¡ª¡ª ÕûÒ³ÖØ»­ºÍ¾Ö²¿ÖØ»­¹²ÓÃ
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_draw_param_row (uint8 r)
+{
+    uint8  num   = menu_param_group_item_num(ui_group);
+    uint8  first = menu_param_group_first_item(ui_group);
+    uint8  vis   = ui_row_visible();
+    uint16 y;
+
+    if ((r < ui_top) || ((uint8)(r - ui_top) >= vis)) { return; }          // ²»ÔÚ¿É¼û´°¿ÚÀï¾Í²»ÓÃ»­
+
+    y = (uint16)(MENU_UI_ITEM_Y0 + (uint8)(r - ui_top) * MENU_UI_ROW_H);
+
+    if (r < num)                                                        // ²ÎÊıÏî
+    {
+        uint8 item = (uint8)(first + r);
+        uint8 edit = ((MENU_UI_STATE_EDIT == ui_state) && (r == ui_row)) ? (1) : (0);
+
+        // ĞŞ¸ÄÊ±Ã¿°´Ò»ÏÂ¶¼Ö±½ÓĞ´½ø²ÎÊı±íÁË£¬ÕâÀïÖ±½ÓÏÔÊ¾ÕæÖµ£¨Áª¶¯µÄÁíÒ»ÏîÒ²Í¬²½ºÃÁË£©
+        ui_draw_row(y, menu_param_item_name(item), menu_param_value_str(item),
+                    (r == ui_row) ? (1) : (0), edit, 0);
+    }
+    else                                                                // »Ö¸´±¾×éÄ¬ÈÏ
+    {
+        ui_draw_row(y, "»Ö¸´±¾×éÄ¬ÈÏ", NULL, (r == ui_row) ? (1) : (0), 0, 1);
+    }
+}
 static void ui_draw_param (void)
 {
-    uint8 num   = menu_param_group_item_num(ui_group);
-    uint8 first = menu_param_group_first_item(ui_group);
-    uint8 rows  = (uint8)(num + 2);                                     // Ä©Î²Á½ĞĞ£º±£´æ±¾×é²ÎÊı / »Ö¸´±¾×éÄ¬ÈÏ
-    uint8 vis   = ui_row_visible();
+    uint8 num  = menu_param_group_item_num(ui_group);
+    uint8 rows = (uint8)(num + 1);                                  // Ä©Î²Ö»Ê£Ò»ĞĞ£º»Ö¸´±¾×éÄ¬ÈÏ
+    uint8 vis  = ui_row_visible();
     uint8 i;
 
     ui_scroll_fix(rows);
     menu_display_clear();
-    ui_draw_title(menu_param_group_name(ui_group), (0 != menu_param_group_dirty(ui_group)) ? ("Î´±£´æ") : ("ÒÑ±£´æ"));
+    ui_draw_title(menu_param_group_name(ui_group), ui_title_state_text());
 
     if (vis > rows) { vis = rows; }
 
     for (i = 0; i < vis; i ++)
     {
-        uint8  r = (uint8)(ui_top + i);
-        uint16 y = (uint16)(MENU_UI_ITEM_Y0 + i * MENU_UI_ROW_H);
-
-        if (r >= rows) { break; }
-
-        if (r < num)                                                    // ²ÎÊıÏî
-        {
-            uint8       item = (uint8)(first + r);
-            uint8       edit = ((MENU_UI_STATE_EDIT == ui_state) && (r == ui_row)) ? (1) : (0);
-            const char *value;
-
-            value = (0 != edit) ? (menu_param_value_str_ex(item, ui_edit_value)) : (menu_param_value_str(item));
-            ui_draw_row(y, menu_param_item_name(item), value, (r == ui_row) ? (1) : (0), edit, 0);
-        }
-        else if (r == num)                                              // ±£´æ±¾×é²ÎÊı
-        {
-            ui_draw_row(y, "±£´æ±¾×é²ÎÊı", NULL, (r == ui_row) ? (1) : (0), 0, 1);
-        }
-        else                                                            // »Ö¸´±¾×éÄ¬ÈÏ
-        {
-            ui_draw_row(y, "»Ö¸´±¾×éÄ¬ÈÏ", NULL, (r == ui_row) ? (1) : (0), 0, 1);
-        }
+        if ((uint8)(ui_top + i) >= rows) { break; }
+        ui_draw_param_row((uint8)(ui_top + i));
     }
     ui_draw_hint();
 }
@@ -543,7 +642,8 @@ static void ui_info_build (uint8 page)
             ui_info_add("4¼ü: ·µ»Ø/È¡Ïû");
             ui_info_add("²ÎÊıÒ³°´3½øÈëĞŞ¸Ä");
             ui_info_add("ĞŞ¸ÄÊ± 1¼Ó 2¼õ");
-            ui_info_add("³¤°´3¼ü ±£´æ²ÎÊı");
+            ui_info_add("3/4¼ü ÍË³öĞŞ¸Ä");
+            ui_info_add("¸Äºó×Ô¶¯±£´æ");
             ui_info_add("³¤°´4¼ü »ØÖ÷²Ëµ¥");
             break;
 
@@ -700,9 +800,7 @@ static const char *ui_popup_text (void)
 {
     switch (ui_popup)
     {
-        case MENU_POPUP_SAVE_GROUP:    return "È·ÈÏ±£´æ±¾×é²ÎÊı?";
         case MENU_POPUP_DEFAULT_GROUP: return "±¾×é»Ö¸´Ä¬ÈÏÖµ?";
-        case MENU_POPUP_SAVE_ALL:      return "È·ÈÏ±£´æÈ«²¿²ÎÊı?";
         case MENU_POPUP_DEFAULT_ALL:   return "È«²¿»Ö¸´Ä¬ÈÏÖµ?";
         default:                       return "È·ÈÏ?";
     }
@@ -773,6 +871,73 @@ static void ui_draw (void)
         case MENU_UI_STATE_OVERVIEW: ui_draw_overview();                  break;
         default:                     ui_draw_menu();                      break;
     }
+    ui_clear_dirty_rows();                  // ÕûÆÁÒÑ¾­»­¹ıÒ»±é£¬¾Ö²¿ÖØ»­µÄÇëÇó¾Í×÷·ÏÁË
+    ui_title_dirty = 0;
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     ¾Ö²¿ÖØ»­£ºÖ»»­¶¯¹ıµÄÄÇÒ»Á½ĞĞ£¨+ ÓÒÉÏ½ÇÄÇ¸öĞ¡×Ö£©
+// ±¸×¢ĞÅÏ¢     ÕâÊÇ¡¸°´×¡¼Ó¼õ²»¿¨¡¹µÄ¹Ø¼ü£ºÕûÆÁ clear + ÖØ»­Òª¼¸°ÙºÁÃë£¬ÖØ»­Á½ĞĞÖ»ÒªÊ®¼¸ºÁÃë
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_draw_partial (void)
+{
+    uint8 i;
+
+    if ((MENU_UI_STATE_PARAM == ui_state) || (MENU_UI_STATE_EDIT == ui_state))
+    {
+        for (i = 0; i < 2; i ++)
+        {
+            if (UI_ROW_NONE != ui_row_dirty[i]) { ui_draw_param_row(ui_row_dirty[i]); }
+        }
+        if (0 != ui_title_dirty) { ui_draw_title_state(); }
+    }
+    else if (MENU_UI_STATE_MENU == ui_state)
+    {
+        for (i = 0; i < 2; i ++)
+        {
+            if (UI_ROW_NONE != ui_row_dirty[i]) { ui_draw_menu_row(ui_row_dirty[i]); }
+        }
+        ui_draw_menu_counter();
+    }
+
+    ui_clear_dirty_rows();
+    ui_title_dirty = 0;
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     ×Ô¶¯±£´æ£º²ÎÊı¸ÄÍê¾ÍĞ´½øÆ¬ÄÚ Flash£¬²»ÓÃÔÙµ¥¶À°´¡¸±£´æ¡¹
+// ±¸×¢ĞÅÏ¢     1. Ö»ÓĞ²ÎÊıÕæµÄ±äÁË²ÅĞ´£¨menu_param µÄ¡¸Î´±£´æ¡¹±êÖ¾£©£»
+//              2. ÊÖ»¹ÔÚ°´¼üÊ±ÏÈµÈ£¬Í£ÊÖ MENU_AUTOSAVE_IDLE_MS ÔÙĞ´£¬Á¬°´¼Ó¼õ²»»á·´¸´²ÁĞ´ Flash£»
+//              3. ÍË³öĞŞ¸Ä½çÃæ / »ØÉÏÒ»²ã / »ØÖ÷²Ëµ¥Ê±»áÖÃ ui_save_now£¬Á¢¿ÌĞ´Ò»´Î ¡ª¡ª ÍË³öÈ¥¾ÍÒ»¶¨´æºÃÁË
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_auto_save (void)
+{
+    uint8  ret;
+    uint8  led = (0 != menu_param_get(MENU_PARAM_IDX_LED)) ? (1) : (0);
+
+    if (0 == menu_param_dirty_group_num()) { ui_save_now = 0; return; }      // Ã»ÓĞ¸Ä¶¯£¬²»Ğ´
+    if (0 != ui_save_block)                { return; }                      // ÉÏ´ÎĞ´Ê§°Ü£¬µÈÏÂ´Î¸Ä²ÎÊıÔÙÊÔ
+
+    if (0 == ui_save_now)
+    {
+        if ((uint32)(ui_ms - ui_last_key_ms) < MENU_AUTOSAVE_IDLE_MS) { return; }   // »¹ÔÚ°´¼ü£¬µÈÍ£ÊÖ
+    }
+    ui_save_now = 0;
+
+    if (0 != led) { MENU_LED2_ON(); }                                       // ´æµÄÊ±ºòÁÁÒ»ÏÂ£¬¿´µÃ¼û¡¸ÒÑ¾­´æÁË¡¹
+    ret = menu_flash_save();
+    if (0 != led) { MENU_LED2_OFF(); }
+
+    if (0 == ret)
+    {
+        UI_LOG("[menu] auto save ok");
+    }
+    else
+    {
+        ui_save_block = 1;
+        UI_LOG("[menu] auto save FAIL");
+    }
+    ui_title_dirty = 1;                                                     // ÓÒÉÏ½Ç¡¸Î´±£´æ -> ÒÑ±£´æ¡¹
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -845,10 +1010,6 @@ static void ui_menu_enter (void)
             ui_need_draw = 1;
             break;
 
-        case MENU_ACT_SAVE_ALL:
-            ui_open_popup(MENU_POPUP_SAVE_ALL);
-            break;
-
         case MENU_ACT_DEFAULT_ALL:
             ui_open_popup(MENU_POPUP_DEFAULT_ALL);
             break;
@@ -883,6 +1044,56 @@ static void ui_menu_home (void)
 }
 
 //-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     ²Ëµ¥ÁĞ±íÉÏÏÂÒÆ¶¯£¨Ö»ÓĞÕæµÄ¹öÆÁ²ÅÕûÆÁÖØ»­£¬·ñÔòÖ»ÖØ»­ÕâÁ½ĞĞ£©
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_menu_move (menu_level_struct *lv, int8 dir)
+{
+    uint8 old_index = lv->index;
+    uint8 old_top   = lv->top;
+
+    if (dir < 0) { lv->index = (0 == lv->index) ? (uint8)(lv->num - 1) : (uint8)(lv->index - 1); }
+    else
+    {
+        lv->index ++;
+        if (lv->index >= lv->num) { lv->index = 0; }
+    }
+
+    ui_scroll_fix(lv->num);
+
+    if (lv->top != old_top) { ui_need_draw = 1; }
+    else
+    {
+        ui_mark_row(old_index);
+        ui_mark_row(lv->index);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// º¯Êı¼ò½é     ²ÎÊıÒ³ÉÏÏÂÒÆ¶¯£¨Í¬ÉÏ£ºÃ»¹öÆÁ¾ÍÖ»ÖØ»­ÕâÁ½ĞĞ£©
+//-------------------------------------------------------------------------------------------------------------------
+static void ui_param_move (uint8 rows, int8 dir)
+{
+    uint8 old_row = ui_row;
+    uint8 old_top = ui_top;
+
+    if (dir < 0) { ui_row = (0 == ui_row) ? (uint8)(rows - 1) : (uint8)(ui_row - 1); }
+    else
+    {
+        ui_row ++;
+        if (ui_row >= rows) { ui_row = 0; }
+    }
+
+    ui_scroll_fix(rows);
+
+    if (ui_top != old_top) { ui_need_draw = 1; }
+    else
+    {
+        ui_mark_row(old_row);
+        ui_mark_row(ui_row);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------------
 // º¯Êı¼ò½é     °´¼ü´¦Àí£¨ËùÓĞ×´Ì¬¶¼Ò»´Î°Ñ 4 ¸ö°´¼ü¶ÁÍê£¬±ÜÃâ×´Ì¬²ĞÁô£©
 //-------------------------------------------------------------------------------------------------------------------
 static void ui_process_key (void)
@@ -893,14 +1104,34 @@ static void ui_process_key (void)
     uint8 ev_ok   = menu_key_short(MENU_KEY_OK);                    // °´¼ü3 P11_2
     uint8 ev_back = menu_key_short(MENU_KEY_BACK);                  // °´¼ü4 P11_3
 
-    uint8 k_up   = (uint8)(ev_up   | menu_key_repeat(MENU_KEY_UP));     // ¶Ì°´ + °´×¡Á¬·¢
-    uint8 k_down = (uint8)(ev_down | menu_key_repeat(MENU_KEY_DOWN));
-    uint8 k_ok   = ev_ok;                                              // È·¶¨
-    uint8 k_back = ev_back;                                            // ·µ»Ø£¨ÍËÒ»²ã / È¡Ïû£©
-    uint8 k_home = menu_key_long(MENU_KEY_BACK);                        // ³¤°´°´¼ü4 = Ö±½Ó»ØÖ÷²Ëµ¥
+    uint8 l_up   = menu_key_long(MENU_KEY_UP);                          // °´¼ü1 ³¤°´£¨ĞŞ¸ÄÊ± = Ò»´Î¼Ó 10 µµ£©
+    uint8 l_down = menu_key_long(MENU_KEY_DOWN);                        // °´¼ü2 ³¤°´£¨ĞŞ¸ÄÊ± = Ò»´Î¼õ 10 µµ£©
+
+    uint8 k_up;
+    uint8 k_down;
+    uint8 k_ok;
+    uint8 k_back;
+    uint8 k_home;
+
+    if ((0 == menu_key_down(MENU_KEY_UP)) && (0 == menu_key_down(MENU_KEY_DOWN)))
+    {
+        ui_edit_coarse = 0;                                             // Á½¸ö¼ü¶¼ËÉ¿ªÁË£ºÍË³ö³¤°´´ó²½Ä£Ê½
+    }
+
+    k_up   = (uint8)(ev_up   | menu_key_repeat(MENU_KEY_UP));           // ¶Ì°´ + °´×¡Á¬·¢
+    k_down = (uint8)(ev_down | menu_key_repeat(MENU_KEY_DOWN));
+    k_ok   = ev_ok;                                                     // È·¶¨
+    k_back = ev_back;                                                   // ·µ»Ø£¨ÍËÒ»²ã / ÍË³öĞŞ¸Ä£©
+    k_home = menu_key_long(MENU_KEY_BACK);                              // ³¤°´°´¼ü4 = Ö±½Ó»ØÖ÷²Ëµ¥
+
+    if ((0 != k_up) || (0 != k_down) || (0 != k_ok) || (0 != k_back))
+    {
+        ui_last_key_ms = ui_ms;                                         // ÓĞ°´¼ü¶¯×÷£º×Ô¶¯±£´æµÄ¾²Ä¬¼ÆÊ±ÖØĞÂ¿ªÊ¼
+    }
 
     if (0 != k_home)                                                    // ³¤°´°´¼ü4£ºÈÎºÎÒ³ÃæÖ±½Ó»ØÖ÷²Ëµ¥
     {
+        ui_save_now = 1;                                                // ÏÈ°Ñ¸Ä¶¯ÂäÅÌÔÙ×ß
         ui_menu_home();
         return;
     }
@@ -912,17 +1143,8 @@ static void ui_process_key (void)
         {
             menu_level_struct *lv = &menu_stack[menu_depth];
 
-            if (0 != k_up)
-            {
-                lv->index = (0 == lv->index) ? (uint8)(lv->num - 1) : (uint8)(lv->index - 1);
-                ui_need_draw = 1;
-            }
-            if (0 != k_down)
-            {
-                lv->index ++;
-                if (lv->index >= lv->num) { lv->index = 0; }
-                ui_need_draw = 1;
-            }
+            if (0 != k_up)   { ui_menu_move(lv, -1); }                  // Ö»ÖØ»­¶¯¹ıµÄÁ½ĞĞ£¬·­²Ëµ¥¸úÊÖ
+            if (0 != k_down) { ui_menu_move(lv,  1); }
             if (0 != k_ok)   { ui_menu_enter(); }
 
             if (0 != k_back)                                                        // °´¼ü4 = ·µ»ØÉÏÒ»²ã
@@ -944,63 +1166,78 @@ static void ui_process_key (void)
         case MENU_UI_STATE_PARAM:
         {
             uint8 num  = menu_param_group_item_num(ui_group);
-            uint8 rows = (uint8)(num + 2);
+            uint8 rows = (uint8)(num + 1);                              // Ä©Î²Ö»ÓĞÒ»ĞĞ£º»Ö¸´±¾×éÄ¬ÈÏ
 
-            if (0 != k_up)
-            {
-                ui_row = (0 == ui_row) ? (uint8)(rows - 1) : (uint8)(ui_row - 1);
-                ui_need_draw = 1;
-            }
-            if (0 != k_down)
-            {
-                ui_row ++;
-                if (ui_row >= rows) { ui_row = 0; }
-                ui_need_draw = 1;
-            }
+            if (0 != k_up)   { ui_param_move(rows, -1); }
+            if (0 != k_down) { ui_param_move(rows,  1); }
+
             if (0 != k_ok)
             {
                 if (ui_row < num)                                                       // ½øÈëĞŞ¸Ä
                 {
-                    ui_edit_value = menu_param_get((uint8)(menu_param_group_first_item(ui_group) + ui_row));
-                    ui_state      = MENU_UI_STATE_EDIT;
-                    ui_need_draw  = 1;
+                    ui_edit_value  = menu_param_get((uint8)(menu_param_group_first_item(ui_group) + ui_row));
+                    ui_edit_coarse = 0;
+                    ui_state       = MENU_UI_STATE_EDIT;
+                    ui_need_draw   = 1;
                     UI_LOG_ONE("[menu] edit item %d", (int)ui_row);
                 }
-                else if (ui_row == num) { ui_open_popup(MENU_POPUP_SAVE_GROUP); }        // ±£´æ±¾×é
-                else                    { ui_open_popup(MENU_POPUP_DEFAULT_GROUP); }     // »Ö¸´±¾×éÄ¬ÈÏ
+                else                                                                    // »Ö¸´±¾×éÄ¬ÈÏ
+                {
+                    ui_open_popup(MENU_POPUP_DEFAULT_GROUP);
+                }
             }
 
-            if (0 != k_back) { ui_state = MENU_UI_STATE_MENU; ui_need_draw = 1; }
+            if (0 != k_back)                                            // »ØÉÏÒ»²ã²Ëµ¥£ºÏÈ°Ñ¸Ä¶¯´æºÃ
+            {
+                ui_save_now  = 1;
+                ui_state     = MENU_UI_STATE_MENU;
+                ui_need_draw = 1;
+            }
             break;
         }
 
         // ------------------------------------------------ ĞŞ¸Ä²ÎÊıÖĞ ------------------------------------------------
         case MENU_UI_STATE_EDIT:
         {
-            uint8 item = (uint8)(menu_param_group_first_item(ui_group) + ui_row);
+            uint8  item    = (uint8)(menu_param_group_first_item(ui_group) + ui_row);
+            int32  step    = menu_param_item_step(item);
+            uint8  coarse;
+            uint8  changed = 0;
+
+            // ³¤°´£ºÒ»´Î×ß 10 µµ£¨Âö¿í 10us -> 100us£¬½Ç¶È 1.0¡ã -> 10.0¡ã£©£¬°´×¡»áÒ»Ö±Á¬·¢
+            if (0 != (l_up | l_down)) { ui_edit_coarse = 1; }
+            coarse = (0 != ui_edit_coarse) ? (1) : (0);
+            if (0 != coarse) { step = step * 10; }
 
             if (0 != k_up)                                                              // °´¼ü1 = ¼ÓÒ»µµ
             {
-                ui_edit_value = menu_param_limit(item, ui_edit_value + menu_param_item_step(item));
-                ui_need_draw  = 1;
+                menu_param_set(item, ui_edit_value + step);                             // Á¢¿ÌĞ´½ø²ÎÊı±í
+                ui_edit_value = menu_param_get(item);                                   // È¡ÏŞ·ùºóµÄÕæÖµ
+                changed = 1;
             }
             if (0 != k_down)                                                            // °´¼ü2 = ¼õÒ»µµ
             {
-                ui_edit_value = menu_param_limit(item, ui_edit_value - menu_param_item_step(item));
-                ui_need_draw  = 1;
+                menu_param_set(item, ui_edit_value - step);
+                ui_edit_value = menu_param_get(item);
+                changed = 1;
             }
-            if (0 != k_ok)                                                              // °´¼ü3 = È·ÈÏĞ´Èë
+
+            if (0 != changed)
             {
-                menu_param_set(item, ui_edit_value);
-                ui_state     = MENU_UI_STATE_PARAM;
-                ui_need_draw = 1;
+                ui_save_block  = 0;                                                     // ÓÖ¸ÄÁË£ºÔÊĞíÖØĞÂ³¢ÊÔ±£´æ
+                ui_title_dirty = 1;
+                ui_mark_row(ui_row);                                                    // Ö»ÖØ»­ÕâÒ»ĞĞ + Áª¶¯ÄÇÒ»ĞĞ
+                ui_mark_linked_row(item);
                 UI_LOG("[menu] value changed");
             }
-            if (0 != k_back)                                                            // ³¤°´È·¶¨ = È¡Ïû±¾´ÎĞŞ¸Ä
+
+            if ((0 != k_ok) || (0 != k_back))                                           // 3 ¼ü¡¢4 ¼ü¶¼ÊÇ¡¸¸ÄºÃÁË£¬ÍË³ö¡¹
             {
-                ui_state     = MENU_UI_STATE_PARAM;
-                ui_need_draw = 1;
-                UI_LOG("[menu] edit cancel");
+                ui_edit_coarse = 0;
+                ui_state       = MENU_UI_STATE_PARAM;
+                ui_need_draw   = 1;
+                ui_save_now    = 1;                                                     // ÍË³ö¾ÍĞ´ Flash£¬µôµç²»¶ª
+                UI_LOG("[menu] edit done");
             }
             break;
         }
@@ -1008,49 +1245,29 @@ static void ui_process_key (void)
         // ------------------------------------------------ µ¯´°È·ÈÏ ------------------------------------------------
         case MENU_UI_STATE_POPUP:
         {
-            if (0 != k_ok)                                                              // È·¶¨£¨³¤°´È·¶¨Ò²Ëã£©
+            if (0 != k_ok)                                                              // È·¶¨
             {
                 switch (ui_popup)
                 {
-                    case MENU_POPUP_SAVE_GROUP:
-                    case MENU_POPUP_SAVE_ALL:
-                    {
-                        uint8 ret = menu_flash_save();
-
-                        UI_LOG_ONE("[menu] flash save result %d", (int)ret);
-                        if (0 == ret)
-                        {
-                            ui_set_toast("±£´æ³É¹¦", MENU_COLOR_OK);
-
-                            if (0 != menu_param_get(MENU_PARAM_IDX_LED))    // ²ÎÊı¡¸LEDÖ¸Ê¾¡¹¿ª×Å¾ÍÉÁÒ»ÏÂ LED
-                            {
-                                MENU_LED1_ON();
-                                system_delay_ms(100);
-                                MENU_LED1_OFF();
-                            }
-                        }
-                        else
-                        {
-                            ui_set_toast("±£´æÊ§°Ü", MENU_COLOR_ERR);
-                        }
-                        ui_return_state = (MENU_POPUP_SAVE_GROUP == ui_popup) ? (MENU_UI_STATE_PARAM) : (MENU_UI_STATE_MENU);
-                        break;
-                    }
                     case MENU_POPUP_DEFAULT_GROUP:
                         menu_param_group_set_default(ui_group);
+                        ui_save_block = 0;
                         ui_set_toast("ÒÑ»Ö¸´Ä¬ÈÏ", MENU_COLOR_EDIT);
                         ui_return_state = MENU_UI_STATE_PARAM;
+                        ui_save_now     = 1;
                         break;
                     case MENU_POPUP_DEFAULT_ALL:
                         menu_param_all_set_default();
+                        ui_save_block = 0;
                         ui_set_toast("ÒÑ»Ö¸´Ä¬ÈÏ", MENU_COLOR_EDIT);
                         ui_return_state = MENU_UI_STATE_MENU;
+                        ui_save_now     = 1;
                         break;
                     default:
                         break;
                 }
             }
-            else if (0 != k_back)                                                       // ³¤°´È·¶¨ = È¡Ïû
+            else if (0 != k_back)                                                       // °´¼ü4 = È¡Ïû
             {
                 ui_set_toast("ÒÑÈ¡Ïû", MENU_COLOR_PEN);
                 UI_LOG("[menu] popup cancel");
@@ -1160,6 +1377,11 @@ void menu_ui_init (void)
     ui_page         = MENU_PAGE_HELP;
     ui_ms           = 0;
     ui_need_draw    = 1;
+    ui_last_key_ms  = 0;
+    ui_save_now     = 0;
+    ui_save_block   = 0;
+    ui_title_dirty  = 0;
+    ui_clear_dirty_rows();
 
     ui_draw();                                  // ÏÈ°ÑÖ÷²Ëµ¥»­³öÀ´
 
@@ -1183,6 +1405,17 @@ void menu_ui_run (void)
     while (TRUE)
     {
         ui_process_key();
+
+        
+        ui_auto_save();                             // ÓĞ¸Ä¶¯¾Í×Ô¶¯Ğ´ Flash£¨ÍË³öĞŞ¸Ä / Í£ÊÖÒ»»á¶ù£©
+
+        // ÔËĞĞ×´Ì¬Ò³Ã¿ 300 ms ÖØ»­Ò»´Î£¬²ÎÊıÖµ¸ú×ÅÊµÊ±±ä
+        if ((MENU_UI_STATE_INFO == ui_state) && (MENU_PAGE_RUN == ui_page)
+            && ((uint32)(ui_ms - ui_run_ms) >= 300u))
+        {
+            ui_run_ms    = ui_ms;
+            ui_need_draw = 1;
+        }
 
         // °´¼ü×Ô¼ìÒ³£º¼üµÄ×´Ì¬ / ´ÎÊıÒ»±ä¾ÍÖØ»­£¨°´ÄÄ¸ö¼ü£¬ÄÇÒ»ĞĞÂíÉÏ±ä¡¸°´×¡¡¹£©
         if ((MENU_UI_STATE_INFO == ui_state) && (MENU_PAGE_KEYTEST == ui_page))
@@ -1208,10 +1441,14 @@ void menu_ui_run (void)
             ui_need_draw = 1;
         }
 
-        if (0 != ui_need_draw)
+        if (0 != ui_need_draw)                  // »»Ò³Ãæ / ¹ö¶¯£ºÕûÆÁÖØ»­Ò»´Î
         {
             ui_draw();
             ui_need_draw = 0;
+        }
+        else if (0 != ui_need_partial())        // Ö»ÊÇÊıÖµ±äÁË£ºÖ»ÖØ»­ÄÇÒ»Á½ĞĞ
+        {
+            ui_draw_partial();
         }
     }
 }

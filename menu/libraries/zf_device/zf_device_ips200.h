@@ -79,7 +79,7 @@
 #else
 //====================================================硬件 SPI 驱动====================================================
 // 如果使用的是SPI 串口的两寸屏幕 SPI 驱动控制引脚 可以修改
-#define IPS200_SPI_SPEED                (10*1000*1000)                          // 硬件 SPI 速率
+#define IPS200_SPI_SPEED                (30*1000*1000)                          // 硬件 SPI 速率（原来 10M，刷屏慢一倍；改到 30M 是快的，花屏就退回 20M/10M）
 #define IPS200_SPI                      (SPI_2           )                      // 硬件 SPI 号
 #define IPS200_SCL_PIN_SPI              (SPI2_SCLK_P15_3 )                      // 硬件 SPI SCK 引脚
 #define IPS200_SDA_PIN_SPI              (SPI2_MOSI_P15_5 )                      // 硬件 SPI MOSI 引脚

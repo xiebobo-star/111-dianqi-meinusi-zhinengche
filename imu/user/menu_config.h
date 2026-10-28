@@ -23,12 +23,17 @@
 
 // ============================================ 2. 按键 ============================================
 // 顺序必须与库文件 zf_device_key.h 里的 KEY_LIST {P20_6, P20_7, P11_2, P11_3} 一致
-#define MENU_KEY_UP                 (KEY_1)                     // 按键1 P20_6 -> 上选
-#define MENU_KEY_DOWN               (KEY_2)                     // 按键2 P20_7 -> 下选
-#define MENU_KEY_OK                 (KEY_3)                     // 按键3 P11_2 -> 确定（进入 / 确认 / 弹窗确认）
-#define MENU_KEY_BACK               (KEY_4)                     // 按键4 P11_3 -> 返回（退出 / 取消）
 
 #define MENU_KEY_SCAN_PERIOD_MS     (10)                        // 按键扫描周期 ms，必须与 10ms 定时中断一致
+#define MENU_KEY_PIN_UP             (P20_6)                     // 按键1 -> 上选
+#define MENU_KEY_PIN_DOWN           (P20_7)                     // 按键2 -> 下选
+#define MENU_KEY_PIN_OK             (P11_2)                     // 按键3 -> 确定
+#define MENU_KEY_PIN_BACK           (P11_3)                     // 按键4 -> 返回（长按回主菜单）
+#define MENU_KEY_ACTIVE_LEVEL       (0)                         // 0 = 按下是低电平（板上按键一端接地、上拉）
+#define MENU_KEY_DEBOUNCE_CNT       (2)                         // 连续 2 次(=20ms)电平一样才认，消抖
+#define MENU_KEY_LONG_MS            (800)                       // 按住多久算长按（长按按键4 = 回主菜单）
+#define MENU_KEY_REPEAT_DELAY_MS    (450)                       // 按住多久开始连发（上下选快速翻）
+#define MENU_KEY_REPEAT_MS          (90)                        // 连发间隔 ms
                                                                 // 库里的消抖(10ms)和长按(1000ms)都按这个周期算
 
 // ============================================ 3. 片内 Flash（参数掉电保存） ============================================
@@ -37,6 +42,10 @@
 // 所以保存过程中断电，最差也只是丢掉这一次修改，不会把参数全丢
 #define MENU_FLASH_PAGE_A           (10)                        // 参数主份页  参数范围 0-11
 #define MENU_FLASH_PAGE_B           (11)                        // 参数备份页
+
+// 自动保存：参数改完不用再按「保存」，停手这么久（ms）就自动写进 Flash；
+// 退出修改界面 / 回上一层 / 回主菜单时还会立刻写一次，所以「退出去那一下」就存好了
+#define MENU_AUTOSAVE_IDLE_MS       (800)
 
 // ============================================ 4. 界面排版 ============================================
 #define MENU_UI_ROW_H               (20)                        // 每行高度（16 像素字 + 4 像素间距）
