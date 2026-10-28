@@ -48,12 +48,12 @@ void core1_main(void)
     disable_Watchdog();                     // 关闭看门狗
     interrupt_global_enable(0);             // 打开全局中断
     // 此处编写用户代码 例如外设初始化代码等
-    ips200_init(IPS200_TYPE_SPI);
-    ips200_clear();
-    ips200_set_font(IPS200_8X16_FONT);
+    tft180_init();
+    tft180_clear();
+    tft180_set_font(TFT180_8X16_FONT);
     // 此处编写用户代码 例如外设初始化代码等
     cpu_wait_event_ready();                 // 等待所有核心初始化完毕
-    ips200_show_string(1,1,"fuck the world");
+    tft180_show_string(1,1,"fuck the world");
     while (TRUE)
     {
         // 此处编写需要循环执行的代码

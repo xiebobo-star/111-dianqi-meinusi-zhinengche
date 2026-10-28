@@ -50,6 +50,6 @@ LAST:  P11_3       ← 最后按下的那个脚
 
 ## 说明
 
-- 屏幕默认 2 寸 IPS200（`cpu0_main.c` 顶部 `KEYTEST_USE_IPS200`，改 0 就是 1.8 寸 TFT180）。
+- 屏幕现在是 1.8 寸 TFT180（`cpu0_main.c` 顶部 `KEYTEST_USE_IPS200 = 0`；改回 1 就是 2 寸 IPS200）。
 - 屏的 SPI 速度已经降到 10MHz（杜邦线用）。
 - 测完这个工程就可以删掉，不影响 `menu` 工程。

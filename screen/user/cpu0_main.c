@@ -49,14 +49,14 @@ int core0_main(void)
     debug_init();                   // 初始化默认调试串口
     // 此处编写用户代码 例如外设初始化代码等
 
-//    ips200_init(IPS200_TYPE_SPI);
+//    tft180_init();
 //
 //    mt9v03x_init();
 //
-//    ips200_show_string(0, 128, "EXP :");                    // 屏幕显示曝光标签
-//    ips200_show_string(0, 144, "MEAN:");                    // 屏幕显示均值标签
-//    ips200_show_string(0, 160, "TIME:");                    // 屏幕显示耗时标签
-//    ips200_show_string(80, 160, "us");                      // 耗时单位
+//    tft180_show_string(0, 128, "EXP :");                    // 屏幕显示曝光标签
+//    tft180_show_string(0, 144, "MEAN:");                    // 屏幕显示均值标签
+//    tft180_show_string(0, 160, "TIME:");                    // 屏幕显示耗时标签
+//    tft180_show_string(80, 160, "us");                      // 耗时单位
 
     // 此处编写用户代码 例如外设初始化代码等
     cpu_wait_event_ready();         // 等待所有核心初始化完毕
@@ -74,10 +74,10 @@ int core0_main(void)
 //
 //            printf("exp:%d mean:%d time:%ld us\r\n", camera_exp_data, cur_mean, ae_time_us); // 串口打印
 //
-//            ips200_displayimage03x(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);
-//            ips200_show_uint(40, 128, camera_exp_data, 3);           // 屏幕显示曝光值
-//            ips200_show_uint(40, 144, cur_mean, 3);                  // 屏幕显示整体均值
-//            ips200_show_uint(40, 160, ae_time_us, 5);                // 屏幕显示耗时(us)
+//            tft180_displayimage03x(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);
+//            tft180_show_uint(40, 128, camera_exp_data, 3);           // 屏幕显示曝光值
+//            tft180_show_uint(40, 144, cur_mean, 3);                  // 屏幕显示整体均值
+//            tft180_show_uint(40, 160, ae_time_us, 5);                // 屏幕显示耗时(us)
 //
 //        }
 

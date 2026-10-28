@@ -14,7 +14,7 @@
 // ============================================ 1. 屏幕 ============================================
 // 主板丝印 -> TC264 引脚：SCK=P15_3  MOSI=P15_5  CS=P15_2  RST=P15_1  DC=P15_0  BLK=P15_4
 // 逐飞库 zf_device_ips200.h / zf_device_tft180.h 的默认引脚正好是这一组，库文件不用改
-#define MENU_DISPLAY_USE_IPS200     (1)                         // 1 = 2 寸 IPS200（SPI 驱动，工程默认）
+#define MENU_DISPLAY_USE_IPS200     (0)                         // 1 = 2 寸 IPS200（SPI 驱动，工程默认）
                                                                 // 0 = 1.8 寸 TFT180
                                                                 // ★ 两块屏指令不通用，手上是哪块就改成哪块
 
@@ -56,11 +56,21 @@
 #define MENU_AUTOSAVE_IDLE_MS       (800)
 
 // ============================================ 4. 界面排版 ============================================
+#if (MENU_DISPLAY_USE_IPS200)
+    // 2 寸 IPS200：240 x 320，一屏 13 行
 #define MENU_UI_ROW_H               (20)                        // 每行高度（16 像素字 + 4 像素间距）
 #define MENU_UI_TITLE_Y             (2)                         // 标题 y 坐标
 #define MENU_UI_ITEM_Y0             (38)                        // 第一行菜单项的 y 坐标
 #define MENU_UI_BAR_H               (18)                        // 选中高亮条高度
 #define MENU_UI_LINE_H              (20)                        // 信息页每行高度
+#else
+    // 1.8 寸 TFT180：128 x 160，一屏 7 行（行高压到 17 像素，舵机那组的 7 项刚好一屏放完）
+#define MENU_UI_ROW_H               (17)                        // 每行高度（16 像素字 + 1 像素间距）
+#define MENU_UI_TITLE_Y             (2)                         // 标题 y 坐标
+#define MENU_UI_ITEM_Y0             (22)                        // 第一行菜单项的 y 坐标
+#define MENU_UI_BAR_H               (16)                        // 选中高亮条高度（正好盖住 16 像素字）
+#define MENU_UI_LINE_H              (16)                        // 信息页每行高度
+#endif
 #define MENU_TOAST_MS               (1500)                      // 提示框（保存成功之类）自动消失时间 ms
 
 // 界面配色
