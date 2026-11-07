@@ -29,3 +29,8 @@ desktop.ini
 .vscode/
 .idea/
 .settings/org.eclipse.core.resources.prefs
+
+# ---- 源码目录里的压缩包备份（menu.zip 这类东西不要进仓库）----
+*.zip
+*.7z
+*.rar

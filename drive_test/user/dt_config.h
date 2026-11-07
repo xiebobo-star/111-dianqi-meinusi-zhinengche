@@ -72,6 +72,11 @@
 #define DT_MOTOR_R_PWM2             (ATOM0_CH3_P21_5)           // 右电机 第二路 PWM（双 PWM 模式用）
 #define DT_MOTOR_R_DIR              (P21_5)                     // 右电机 方向脚（PWM+DIR 模式用）
 
+// 上面两路 PWM 用的是同一个脚，只是「走 GTM 硬件」还是「走普通 IO」。
+// 引脚自检里会拿同一个脚先出 GTM 波形、再切成普通 IO 翻转，做 A/B 对比（平时不用管这两行）
+#define DT_MOTOR_L_GPIO_PIN         (P21_2)
+#define DT_MOTOR_R_GPIO_PIN         (P21_4)
+
 #define DT_MOTOR_STEP               (1000)                      // 测试页按一下增加 / 减少的占空比
 #define DT_MOTOR_DUTY_LIMIT         (10000)                     // 占空比上限（10000 = 100%）
 #define DT_MOTOR_INVERT_L           (0)                         // 左轮方向反了（想让它转却往后退）改成 1

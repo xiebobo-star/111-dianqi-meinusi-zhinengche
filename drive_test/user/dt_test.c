@@ -6,6 +6,8 @@
 * 安全提醒          测电机之前把车轮架起来，别让车窜出去
 ********************************************************************************************************************/
 #include "zf_common_headfile.h"
+#include "IfxGtm_reg.h"                                     // MODULE_GTM（读回 PWM 寄存器用）
+#include "IfxGtm_Atom.h"                                    // IfxGtm_Atom_Ch_getCompareZero / One
 #include "dt_config.h"
 #include "dt_display.h"
 #include "dt_test.h"
@@ -475,6 +477,88 @@ static void dt_motor_apply (uint8 index, int16 duty)
 #endif
 }
 
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      把 GTM 里这一路的周期/占空比寄存器打出来 —— 证明「固件真的把值写进硬件了」
+// 参数说明      index  0 = 左轮 ATOM0_CH0(P21_2)   1 = 右轮 ATOM0_CH2(P21_4)
+// 备注信息      17kHz + 20MHz CMU 时 CM0 应该正好是 1176；CM1 = 高电平的计数（100% = 1176，0% = 0）
+//-------------------------------------------------------------------------------------------------------------------
+static void dt_motor_gtm_dump (uint8 index)
+{
+    uint8  ch  = (0 == index) ? 0 : 2;
+    uint32 cm0 = IfxGtm_Atom_Ch_getCompareZero(&MODULE_GTM.ATOM[0], (IfxGtm_Atom_Ch)ch);
+    uint32 cm1 = IfxGtm_Atom_Ch_getCompareOne (&MODULE_GTM.ATOM[0], (IfxGtm_Atom_Ch)ch);
+
+    DT_LOG("[电机自检] %s ATOM0_CH%d  CM0=%lu  CM1=%lu\r\n", (0 == index) ? "左P21.2" : "右P21.4", ch, cm0, cm1);
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      电机引脚静态电平自检（没有示波器，万用表 DC 档就能判死）
+//               0% 恒低 1.2s  ->  100% 恒高 1.2s  ->  1Hz 方波 3s（每 0.5s 翻转一次）
+// 参数说明      index  0 = 左轮(P21.2)   1 = 右轮(P21.4)
+// 判读          在 0.00V 和 3.3V 之间跳   -> 这一脚和线都是通的，问题在别处（驱动板/电机/接插件）
+//               一直卡在 1.6~2.2V 不动   -> 这一脚根本没被驱动（高阻/悬空），查 MCU 侧或这根线
+// 注意          会真的转！测之前把车架起来，或者先把驱动板的使能开关关掉、只量信号
+//-------------------------------------------------------------------------------------------------------------------
+static void dt_motor_pin_check (uint8 index)
+{
+    pwm_channel_enum ch   = (0 == index) ? DT_MOTOR_L_PWM : DT_MOTOR_R_PWM;
+    const char      *name = (0 == index) ? "左P21.2" : "右P21.4";
+    uint8 i = 0;
+
+    dt_display_color(DT_COLOR_ERR, DT_COLOR_BG);
+    dt_display_cn(0, 94, (0 == index) ? "左自检" : "右自检");
+    dt_display_color(DT_COLOR_TEXT, DT_COLOR_BG);
+
+    pwm_set_duty(ch, 0);                                                // 第一步：0% 恒低
+    dt_display_cn(0, 112, "0%");
+    DT_LOG("[电机自检] %s 输出 0%%（恒低 1.2s）-> 表应读 0.00V\r\n", name);
+    system_delay_ms(1200);
+
+    pwm_set_duty(ch, PWM_DUTY_MAX);                                     // 第二步：100% 恒高、不斩波
+    dt_display_cn(0, 112, "100%");
+    DT_LOG("[电机自检] %s 输出 100%%（恒高 1.2s）-> 表应读 3.3V\r\n", name);
+    system_delay_ms(1200);
+    dt_motor_gtm_dump(index);
+
+    dt_display_cn(0, 112, "方波");                                      // 第三步：1Hz 方波，表来回跳
+    DT_LOG("[电机自检] %s 输出 1Hz 方波（3s）-> 表应在 0.0V 和 3.3V 之间跳\r\n", name);
+    for(i = 0; i < 3; i++)
+    {
+        pwm_set_duty(ch, PWM_DUTY_MAX);
+        system_delay_ms(500);
+        pwm_set_duty(ch, 0);
+        system_delay_ms(500);
+    }
+
+    // 第四步：同一个脚改用「普通 IO」翻转 —— 和上面的 GTM 输出做 A/B 对比
+    dt_display_cn(0, 112, "IO方波");
+    DT_LOG("[电机自检] %s 改用普通 IO 翻转（3s）-> 表应在 0.0V 和 3.3V 之间跳\r\n", name);
+    gpio_init((0 == index) ? DT_MOTOR_L_GPIO_PIN : DT_MOTOR_R_GPIO_PIN, GPO, GPIO_LOW, GPO_PUSH_PULL);
+    for(i = 0; i < 3; i++)
+    {
+        gpio_set_level((0 == index) ? DT_MOTOR_L_GPIO_PIN : DT_MOTOR_R_GPIO_PIN, 1);
+        system_delay_ms(500);
+        gpio_set_level((0 == index) ? DT_MOTOR_L_GPIO_PIN : DT_MOTOR_R_GPIO_PIN, 0);
+        system_delay_ms(500);
+    }
+
+    pwm_init(ch, DT_MOTOR_PWM_FREQ, 0);                                 // 恢复成 GTM PWM 输出（占空比 0）
+
+    DT_LOG("[电机自检] %s 自检结束\r\n", name);
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      电机页的按键提示（自检会临时盖掉 94/112 两行，结束再画回来）
+//-------------------------------------------------------------------------------------------------------------------
+static void dt_motor_draw_hints (void)
+{
+    dt_display_color(DT_COLOR_TEXT, DT_COLOR_BG);
+    dt_display_cn(0, 76, "先把车轮架起来");
+    dt_display_cn(0, 94, "1加 2减 3换轮");
+    dt_display_cn(0, 112, "4停 长按4退出");
+    dt_display_cn(0, 130, "长按1左 长按2右");
+}
+
 static void dt_motor_show (int16 *duty, uint8 sel)
 {
     dt_display_color(DT_COLOR_TEXT, DT_COLOR_BG);
@@ -495,9 +579,7 @@ static void dt_test_motor (void)
 
     dt_motor_hw_init();
     dt_page_begin("电机");
-    dt_display_cn(0, 76, "先把车轮架起来");
-    dt_display_cn(0, 94, "1加 2减 3换轮");
-    dt_display_cn(0, 112, "4停 长按4退出");
+    dt_motor_draw_hints();
     dt_motor_show(duty, sel);
 
     while(1)
@@ -529,6 +611,27 @@ static void dt_test_motor (void)
             sel = (uint8)(1 - sel);
             dt_motor_show(duty, sel);
             DT_LOG("[电机] 当前选中 %s\r\n", (0 == sel) ? "左轮" : "右轮");
+        }
+        // 长按按键1 / 按键2 = 单独给左 / 右路做引脚自检（不经过按键3，万用表就能判）
+        if(dt_key_hold(KEY_1))
+        {
+            dt_motor_apply(0, 0);
+            dt_motor_apply(1, 0);
+            dt_motor_pin_check(0);
+            dt_motor_apply(0, duty[0]);
+            dt_motor_apply(1, duty[1]);
+            dt_motor_draw_hints();
+            dt_motor_show(duty, sel);
+        }
+        if(dt_key_hold(KEY_2))
+        {
+            dt_motor_apply(0, 0);
+            dt_motor_apply(1, 0);
+            dt_motor_pin_check(1);
+            dt_motor_apply(0, duty[0]);
+            dt_motor_apply(1, duty[1]);
+            dt_motor_draw_hints();
+            dt_motor_show(duty, sel);
         }
         if(dt_key_hit(KEY_4))
         {
