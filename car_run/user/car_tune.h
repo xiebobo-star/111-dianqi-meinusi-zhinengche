@@ -41,9 +41,10 @@ uint8  car_tune_motor_inv_r      (void);
 int8   car_tune_enc_sign_l       (void);
 int8   car_tune_enc_sign_r       (void);
 
-// ---- 单位换算（脉冲/10ms <-> mm/s）----
-float  car_tune_mm_s_to_counts   (float mm_s);
-float  car_tune_counts_to_mm_s   (float counts);
+// ---- 单位换算 ----
+float  car_tune_mm_s_to_counts   (float mm_s);     // mm/s -> 脉冲/10ms
+float  car_tune_counts_to_mm_s   (float counts);   // 脉冲/10ms -> mm/s（带 x100，只能给速度用）
+float  car_tune_counts_to_mm     (float counts);   // 脉冲 -> mm（里程用，不带 x100）
 float  car_tune_wheel_mm         (void);        // 轮径 mm
 float  car_tune_cpr              (void);        // 车轮转一圈的脉冲数
 

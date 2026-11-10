@@ -54,6 +54,12 @@ float car_tune_counts_to_mm_s (float counts)
     return counts * 100.0f * TUNE_PI * car_tune_wheel_mm() / car_tune_cpr();
 }
 
+// 脉冲 -> mm：里程是「累计脉冲」直接线性换算，没有「每 10ms」这回事，所以这里不能乘 100
+float car_tune_counts_to_mm (float counts)
+{
+    return counts * TUNE_PI * car_tune_wheel_mm() / car_tune_cpr();
+}
+
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     舵机三点
 //-------------------------------------------------------------------------------------------------------------------

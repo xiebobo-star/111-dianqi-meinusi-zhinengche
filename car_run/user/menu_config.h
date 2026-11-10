@@ -140,7 +140,7 @@
 #define MENU_PARAM_IDX_MOTOR_INV_R    (25)                      // 右电机方向取反
 #define MENU_PARAM_IDX_ENC_INV_L      (26)                      // 左编码器方向取反
 #define MENU_PARAM_IDX_ENC_INV_R      (27)                      // 右编码器方向取反
-#define MENU_PARAM_IDX_ENC_MODE       (28)                      // 编码器模式：0 脉冲+方向 / 1 正交AB
+#define MENU_PARAM_IDX_ENC_FILTER     (28)                      // 编码器速度滤波 0~90%（0 = 不滤波）
 
 // 组号（menu_param_group_table[] 的下标）
 #define MENU_GROUP_SERVO            (0)

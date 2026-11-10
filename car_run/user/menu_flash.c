@@ -18,7 +18,7 @@
 #include "menu_flash.h"
 
 #define MENU_FLASH_MAGIC        (0x5A46504DU)                      // 'ZFPM'
-#define MENU_FLASH_VERSION      (0x00010000U)                      // V1.0
+#define MENU_FLASH_VERSION      (0x00010001U)                      // V1.1（编码器参数含义改过，旧记录作废）
 #define MENU_FLASH_HEAD_LEN     (8)                                // 头部 8 个 uint32
 #define MENU_FLASH_CHK_INDEX    (6)                                // 校验和放在第 6 个字
 
