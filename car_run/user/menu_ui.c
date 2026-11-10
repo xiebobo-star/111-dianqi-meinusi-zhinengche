@@ -72,6 +72,7 @@ typedef enum
     MENU_PAGE_FLASH,                        // ´æ´¢×´Ì¬
     MENU_PAGE_KEYTEST,                      // °´¼ü×Ô¼ì£¨ÊµÊ±ÏÔÊ¾Ã¿¸ö¼ü°´ÏÂ/ËÉ¿ª + ´ÎÊı£©
     MENU_PAGE_HWTEST,                       // Ó²¼ş×Ô¼ì£¨LED ÉÁ 3 ´Î / ´®¿Ú´òÒ»ĞĞ / Flash ´æ¶ÁĞ£Ñé£©
+    MENU_PAGE_ENCTEST,                      // ±àÂë×Ô¼ì£¨A/B ÏàµçÆ½Õ¼¿Õ±È + Âö³å / ËÙ¶È£©
 }menu_page_enum;
 
 typedef struct menu_node_struct
@@ -108,6 +109,7 @@ static const menu_node_struct menu_system_info[] =
     {"²Ù×÷ËµÃ÷",     MENU_ACT_INFO,          NULL, 0, MENU_PAGE_HELP},
     {"°´¼ü×Ô¼ì",     MENU_ACT_INFO,          NULL, 0, MENU_PAGE_KEYTEST},   // °´ÄÄ¸ö¼üÄÄĞĞ¾Í±ä¡¸°´×¡¡¹
     {"Ó²¼ş×Ô¼ì",     MENU_ACT_INFO,          NULL, 0, MENU_PAGE_HWTEST},    // LED / ´®¿Ú / Flash Ò»´Î¹ıÒ»±é
+    {"±àÂë×Ô¼ì",     MENU_ACT_INFO,          NULL, 0, MENU_PAGE_ENCTEST},   // ÊÖ×ªÂÖ×Ó¿´ A/B ÏàÓĞÃ»ÓĞĞÅºÅ
 };
 
 // ---------------------------------------------------------------- µÚ 1 ²ã£ºÖ÷²Ëµ¥ ------------------------------------------------
@@ -164,6 +166,7 @@ static uint8              ui_edit_coarse;                   // 1 = ÕâÒ»ÂÖ°´×¡ÒÑ¾
 static uint8              ui_page;                          // ĞÅÏ¢Ò³±àºÅ
 static uint32             ui_ms;                            // ÉÏµç¾­¹ıµÄºÁÃëÊı£¨10ms ÖĞ¶ÏÀÛ¼Ó£©
 static uint32             ui_run_ms;                        // ÔËĞĞ×´Ì¬Ò³ÉÏ´ÎÖØ»­µÄÊ±¿Ì£¨²ÎÊıÖµÊµÊ±Ë¢ĞÂÓÃ£©
+static uint32             ui_enc_ms;                        // ±àÂë×Ô¼ìÒ³Ë¢ĞÂ¼ÆÊ±
 static uint8              ui_hw_led_ok;                     // Ó²¼ş×Ô¼ì£ºLED ÒÑ¾­ÉÁ¹ı
 static uint8              ui_hw_flash_ok;                   // Ó²¼ş×Ô¼ì£ºFlash ´æ / »Ø¶ÁÊÇ·ñÍ¨¹ı
 static uint8              ui_hw_flash_ret;                  // Ó²¼ş×Ô¼ì£ºFlash ±£´æ·µ»ØÖµ£¨0 = ³É¹¦£©
@@ -787,6 +790,21 @@ static void ui_info_build (uint8 page)
                          (int)(menu_param_get(MENU_PARAM_IDX_WHEEL) % 10));
             break;
 
+        case MENU_PAGE_ENCTEST:
+            ui_info_addf("AÏàÕ¼¿Õ L%d%% R%d%%",  (int)enc_pin_duty(ENC_DBG_A_L), (int)enc_pin_duty(ENC_DBG_A_R));
+            ui_info_addf("BÏàÕ¼¿Õ L%d%% R%d%%",  (int)enc_pin_duty(ENC_DBG_B_L), (int)enc_pin_duty(ENC_DBG_B_R));
+            ui_info_addf("µçÆ½ A%d%d B%d%d",
+                         (int)enc_pin_level(ENC_DBG_A_L), (int)enc_pin_level(ENC_DBG_B_L),
+                         (int)enc_pin_level(ENC_DBG_A_R), (int)enc_pin_level(ENC_DBG_B_R));
+            ui_info_addf("Âö³å L%d R%d", (int)enc_counts(ENC_L), (int)enc_counts(ENC_R));
+            ui_info_addf("ÀÛ¼Æ L%d R%d", (int)enc_total(ENC_L), (int)enc_total(ENC_R));
+            ui_info_addf("ËÙ¶È L%d R%d mm/s", (int)enc_speed_mm_s(ENC_L), (int)enc_speed_mm_s(ENC_R));
+            ui_info_addf("Òì³£ %s  Ã¿È¦Âö³å %d",
+                         (0 != enc_abnormal()) ? ("ÓĞ") : ("ÎŞ"), (int)menu_param_get(MENU_PARAM_IDX_ENC_CPR));
+            ui_info_add("ÊÖ×ªÂÖ×Ó¿´Õ¼¿Õ±È");
+            ui_info_add("Ò»Ö±0%»ò100%=Ã»ĞÅºÅ");
+            break;
+
         case MENU_PAGE_FLASH:
             ui_info_addf("Ò³A: %s ĞòºÅ%lu",
                      (0 != menu_flash_page_valid(0)) ? ("ÓĞĞ§") : ("¿Õ"), (unsigned long)menu_flash_page_seq(0));
@@ -895,6 +913,7 @@ static void ui_draw_info (void)
         case MENU_PAGE_FLASH:    title = "´æ´¢×´Ì¬"; break;
         case MENU_PAGE_KEYTEST:  title = "°´¼ü×Ô¼ì"; break;
         case MENU_PAGE_HWTEST:   title = "Ó²¼ş×Ô¼ì"; break;
+        case MENU_PAGE_ENCTEST:  title = "±àÂë×Ô¼ì"; break;
         default:                 title = "ĞÅÏ¢";     break;
     }
 
@@ -1548,6 +1567,7 @@ void menu_ui_init (void)
     ui_top          = 0;
     ui_page         = MENU_PAGE_HELP;
     ui_ms           = 0;
+    ui_enc_ms       = 0;
     ui_need_draw    = 1;
     ui_last_key_ms  = 0;
     ui_save_now     = 0;
@@ -1585,6 +1605,14 @@ void menu_ui_run (void)
         if ((MENU_UI_STATE_MODULE == ui_state) && (0 == ui_need_draw))
         {
             menu_run_live(ui_page);
+        }
+
+        // ±àÂë×Ô¼ìÒ³£ºÃ¿ 200ms ÖØ»­Ò»´Î£¨ÊÖ×ªÂÖ×ÓÊ±¿´Õ¼¿Õ±È / Âö³åÔÚ±ä£©
+        if ((MENU_UI_STATE_INFO == ui_state) && (MENU_PAGE_ENCTEST == ui_page)
+            && ((uint32)(ui_ms - ui_enc_ms) >= 200u))
+        {
+            ui_enc_ms    = ui_ms;
+            ui_need_draw = 1;
         }
 
         // ÔËĞĞ×´Ì¬Ò³Ã¿ 300 ms ÖØ»­Ò»´Î£¬²ÎÊıÖµ¸ú×ÅÊµÊ±±ä

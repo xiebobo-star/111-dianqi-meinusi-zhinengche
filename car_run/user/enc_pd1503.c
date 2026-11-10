@@ -14,6 +14,11 @@
 
 #define ENC_RAW_LIMIT       (20000)                 // 单周期脉冲上限，超过就当异常
 
+static uint16 enc_dbg_high[ENC_DBG_NUM];            // 1 秒窗口里该脚读到高的次数
+static uint16 enc_dbg_cnt;                          // 1 秒窗口里的采样次数
+static uint8  enc_dbg_duty[ENC_DBG_NUM];            // 上一個窗口的占空比 0~100
+static uint8  enc_dbg_lvl [ENC_DBG_NUM];            // 最近一次读到的电平
+
 static int32 enc_last  [ENC_NUM];                   // 本周期脉冲（带符号）
 static float enc_filt  [ENC_NUM];                   // 滤波后的速度（脉冲/10ms）
 static int32 enc_sum   [ENC_NUM];                   // 累计脉冲
@@ -71,6 +76,26 @@ void enc_update (void)
 
     sign[ENC_L] = car_tune_enc_sign_l();
     sign[ENC_R] = car_tune_enc_sign_r();
+
+    // 顺带采一下 4 个编码器脚的电平（编码自检页用；对计数没有任何影响）
+    enc_dbg_lvl[ENC_DBG_A_L] = (0 != gpio_get_level(P02_8)) ? (1) : (0);
+    enc_dbg_lvl[ENC_DBG_B_L] = (0 != gpio_get_level(P00_9)) ? (1) : (0);
+    enc_dbg_lvl[ENC_DBG_A_R] = (0 != gpio_get_level(P10_3)) ? (1) : (0);
+    enc_dbg_lvl[ENC_DBG_B_R] = (0 != gpio_get_level(P10_1)) ? (1) : (0);
+    for (i = 0; i < ENC_DBG_NUM; i ++)
+    {
+        if (0 != enc_dbg_lvl[i]) { enc_dbg_high[i] ++; }
+    }
+    enc_dbg_cnt ++;
+    if (enc_dbg_cnt >= 100)                         // 10ms x 100 = 1 秒一个统计窗口
+    {
+        for (i = 0; i < ENC_DBG_NUM; i ++)
+        {
+            enc_dbg_duty[i] = (uint8)((uint32)enc_dbg_high[i] * 100u / enc_dbg_cnt);
+            enc_dbg_high[i] = 0;
+        }
+        enc_dbg_cnt = 0;
+    }
 
     enc_bad = 0;
     for (i = 0; i < ENC_NUM; i ++)
@@ -137,6 +162,18 @@ float enc_dist_mm (uint8 idx)
 uint8 enc_abnormal (void)
 {
     return enc_bad;
+}
+
+uint8 enc_pin_duty (uint8 which)
+{
+    if (which >= ENC_DBG_NUM) { return 0; }
+    return enc_dbg_duty[which];
+}
+
+uint8 enc_pin_level (uint8 which)
+{
+    if (which >= ENC_DBG_NUM) { return 0; }
+    return enc_dbg_lvl[which];
 }
 
 #pragma section all restore
