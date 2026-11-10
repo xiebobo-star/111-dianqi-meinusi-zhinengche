@@ -4,7 +4,7 @@
 *
 *   电机输出页   选「两轮 / 左轮 / 右轮」，用按键1/2 加减占空比，屏上同时显示两轮编码器速度
 *                —— 车必须架起来，或者把驱动板上的使能开关关掉再按
-*   编码器页     本周期脉冲数 / 累计脉冲 / 速度 mm/s / 累计里程，按键3 清零
+*   编码器页     累计脉冲 / A相B相占空比（编码自检）/ 速度 mm/s，按键3 清零
 *
 * 硬件               主板「电机信号1」 左 = P21_2(PWM) + P21_3(DIR)   右 = P21_4(PWM) + P21_5(DIR)
 *                   驱动板 DRV8701E（PH/EN）：PWM 进 EN 调速、DIR 进 PH 定方向
@@ -168,13 +168,17 @@ static void motor_build_lines (uint8 page)
     }
     else
     {
-        snprintf(motor_buf[0], sizeof(motor_buf[0]), "左 %d 右 %d 脉冲",
-                 (int)imu_encoder_count(IMU_ENC_LEFT), (int)imu_encoder_count(IMU_ENC_RIGHT));
-        snprintf(motor_buf[1], sizeof(motor_buf[1]), "左 %d mm/s", (int)imu_encoder_speed_mm_s(IMU_ENC_LEFT));
-        snprintf(motor_buf[2], sizeof(motor_buf[2]), "右 %d mm/s", (int)imu_encoder_speed_mm_s(IMU_ENC_RIGHT));
-        snprintf(motor_buf[3], sizeof(motor_buf[3]), "里程 %d mm", (int)imu_odom_dist_mm());
-        snprintf(motor_buf[4], sizeof(motor_buf[4]), "3键 清零脉冲");
-        snprintf(motor_buf[5], sizeof(motor_buf[5]), "4键 返回");
+        // ★ 主数字用「累计脉冲」，不要用「本周期脉冲」：本周期只是最近 10ms 的增量，
+        //   手慢慢转轮子时 90% 的窗口都是 0，屏上看着就像编码器没反应（以前的坑）
+        snprintf(motor_buf[0], sizeof(motor_buf[0]), "左累计 %d", (int)imu_encoder_total(IMU_ENC_LEFT));
+        snprintf(motor_buf[1], sizeof(motor_buf[1]), "右累计 %d", (int)imu_encoder_total(IMU_ENC_RIGHT));
+        snprintf(motor_buf[2], sizeof(motor_buf[2]), "A相 L%d R%d",
+                 (int)imu_encoder_pin_duty(IMU_ENC_PIN_A_LEFT), (int)imu_encoder_pin_duty(IMU_ENC_PIN_A_RIGHT));
+        snprintf(motor_buf[3], sizeof(motor_buf[3]), "B相 L%d R%d",
+                 (int)imu_encoder_pin_duty(IMU_ENC_PIN_B_LEFT), (int)imu_encoder_pin_duty(IMU_ENC_PIN_B_RIGHT));
+        snprintf(motor_buf[4], sizeof(motor_buf[4]), "速度%d/%d",
+                 (int)imu_encoder_speed_mm_s(IMU_ENC_LEFT), (int)imu_encoder_speed_mm_s(IMU_ENC_RIGHT));
+        snprintf(motor_buf[5], sizeof(motor_buf[5]), "3清零 4返回");
     }
 }
 

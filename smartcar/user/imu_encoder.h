@@ -28,4 +28,18 @@ int32 imu_encoder_speed      (imu_enc_id_enum enc_n);                   // 脉冲/
 float imu_encoder_speed_mm_s (imu_enc_id_enum enc_n);                   // mm/s
 uint8 imu_encoder_moving     (void);                                    // 1 = 有轮子在转
 
+// 编码自检：A/B 两相引脚的电平与「上 1 秒里读到高的比例%」
+// 只用来判断「信号到底有没有到芯片」，不参与控制
+typedef enum
+{
+    IMU_ENC_PIN_A_LEFT  = 0,
+    IMU_ENC_PIN_B_LEFT  = 1,
+    IMU_ENC_PIN_A_RIGHT = 2,
+    IMU_ENC_PIN_B_RIGHT = 3,
+    IMU_ENC_PIN_NUM,
+}imu_enc_pin_enum;
+
+uint8 imu_encoder_pin_duty  (imu_enc_pin_enum pin_n);                   // 占空比 0~100（%）
+uint8 imu_encoder_pin_level (imu_enc_pin_enum pin_n);                   // 最近一次读到的电平
+
 #endif

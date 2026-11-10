@@ -58,6 +58,13 @@
 #define IMU_ENC_RIGHT_A             (TIM5_ENCODER_CH1_P10_3)
 #define IMU_ENC_RIGHT_B             (TIM5_ENCODER_CH2_P10_1)
 
+// 编码自检用的 GPIO 名字：10ms 中断里顺带采这 4 个脚的电平，屏上给「A相/B相占空比」
+// 手转编码器轴时是方波 -> 占空比 ≈50%；一直 0% 或 100% = 这个脚上没有信号（供电/共地/线序/磁铁）
+#define IMU_ENC_LEFT_A_PIN          (P02_8)
+#define IMU_ENC_LEFT_B_PIN          (P00_9)
+#define IMU_ENC_RIGHT_A_PIN         (P10_3)
+#define IMU_ENC_RIGHT_B_PIN         (P10_1)
+
 #define IMU_ENC_PERIOD_MS           (10)                        // 测速周期 ms（与 10ms 定时中断一致）
 #define IMU_ENC_LEFT_INVERT         (0)                         // 左轮往前推、读出来是负数 -> 改成 1
 #define IMU_ENC_RIGHT_INVERT        (0)

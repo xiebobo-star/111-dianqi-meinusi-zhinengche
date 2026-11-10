@@ -2,7 +2,7 @@
 * 文件名            menu_motor.h
 * 说明              菜单里的两个电机 / 编码器页面（由 menu_ui.c 分派）
 *                     MENU_MOTOR_PAGE_MOTOR   电机输出：两轮 / 单轮占空比加减，同时看两轮编码器速度
-*                     MENU_MOTOR_PAGE_ENC     编码器：本周期脉冲 / 累计脉冲 / 速度 mm/s / 里程，可清零
+*                     MENU_MOTOR_PAGE_ENC     编码器：累计脉冲 / A相B相占空比 / 速度 mm/s，可清零
 *
 * 用法              cpu0_main 里必须先调 menu_motor_safe_init()（在屏幕初始化之前！）
 *                   menu_ui.c 里调另外 4 个函数：enter / draw / live / key
