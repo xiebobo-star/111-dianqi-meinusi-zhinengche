@@ -41,6 +41,7 @@
 #include "menu_ui.h"
 #include "tof_config.h"
 #include "tof_ranging.h"
+#include "menu_motor.h"
 #include "imu_config.h"
 #include "imu_attitude.h"
 #include "imu_encoder.h"
@@ -54,6 +55,11 @@ int core0_main(void)
 {
     clock_init();                                               // 获取时钟频率<务必保留>
     debug_init();                                               // 初始化默认调试串口
+
+    // ------------------------- 0. 先把电机引脚压成安全态（★ 必须是第一步） -------------------------
+    // P21_2~P21_5 复位后是输入态，驱动板 EN 上的上拉会把电机当成「全速前进」——上电车会直接飞出去。
+    // 以前这里是懒初始化（要进「电机输出」页才拉低），屏幕初始化的那几百 ms 就是「飞车窗口」。
+    menu_motor_safe_init();
 
     // ------------------------- 1. 核心板 LED（保存成功 / 自检时会闪一下） -------------------------
     gpio_init(MENU_LED1_PIN, GPO, GPIO_HIGH, GPO_PUSH_PULL);

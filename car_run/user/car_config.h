@@ -49,6 +49,8 @@
 /* ---- 电机（PWM+DIR 驱动板）---- */
 #define CAR_MOTOR_L_PWM         ATOM0_CH0_P21_2
 #define CAR_MOTOR_R_PWM         ATOM0_CH2_P21_4
+#define CAR_MOTOR_L_PIN         P21_2           /* 左电机 EN 的 GPIO 名：上电第一时间拉低（和 PWM 同一个脚） */
+#define CAR_MOTOR_R_PIN         P21_4           /* 右电机 EN 的 GPIO 名 */
 #define CAR_MOTOR_L_DIR         P21_3
 #define CAR_MOTOR_R_DIR         P21_5
 #define CAR_MOTOR_HZ            17000

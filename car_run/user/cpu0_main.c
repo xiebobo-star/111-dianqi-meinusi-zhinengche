@@ -42,6 +42,11 @@ int core0_main(void)
     clock_init();                                               // 获取时钟频率<务必保留>
     debug_init();                                               // 初始化默认调试串口
 
+    // ------------------------- 0. 先把电机引脚压成安全态（★ 必须是第一步） -------------------------
+    // P21_2~P21_5 复位后是输入态，驱动板 EN 上的上拉会让电机全速转 —— 上电车会直接飞。
+    // 屏幕初始化要几百 ms，这期间车必须是停的，所以这里先拉低，再去做别的初始化。
+    car_board_motor_safe();
+
     // ------------------------- 1. 核心板 LED（保存成功 / 自检时闪） -------------------------
     gpio_init(MENU_LED1_PIN, GPO, GPIO_HIGH, GPO_PUSH_PULL);
     gpio_init(MENU_LED2_PIN, GPO, GPIO_HIGH, GPO_PUSH_PULL);

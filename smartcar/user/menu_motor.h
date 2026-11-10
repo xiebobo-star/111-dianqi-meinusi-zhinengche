@@ -4,7 +4,8 @@
 *                     MENU_MOTOR_PAGE_MOTOR   电机输出：两轮 / 单轮占空比加减，同时看两轮编码器速度
 *                     MENU_MOTOR_PAGE_ENC     编码器：本周期脉冲 / 累计脉冲 / 速度 mm/s / 里程，可清零
 *
-* 用法              menu_ui.c 里只调 4 个函数：enter / draw / live / key
+* 用法              cpu0_main 里必须先调 menu_motor_safe_init()（在屏幕初始化之前！）
+*                   menu_ui.c 里调另外 4 个函数：enter / draw / live / key
 *                   懒初始化：第一次进页面才 pwm_init，没进就不出波（电机绝不自己转）
 *
 * 硬件              主板「电机信号1」 左 = P21_2(PWM) + P21_3(DIR)   右 = P21_4(PWM) + P21_5(DIR)
@@ -24,6 +25,7 @@
 #define MENU_MOTOR_PAGE_ENC         (1)                                         // 编码器
 #define MENU_MOTOR_PAGE_NUM         (2)
 
+void  menu_motor_safe_init (void);                                              // ★ 上电第一时间调用：EN/DIR 拉低、PWM 0%
 void  menu_motor_enter (uint8 page);                                            // 进入页面：初始化 PWM 并整屏画一次
 void  menu_motor_draw  (uint8 page);                                            // 整屏重画
 void  menu_motor_live  (uint8 page);                                            // 周期刷新数字（主循环 200ms 一次）

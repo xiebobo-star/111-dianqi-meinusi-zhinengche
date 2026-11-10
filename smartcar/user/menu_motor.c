@@ -27,6 +27,8 @@
 #define MOTOR_R_PWM                 (ATOM0_CH2_P21_4)           // 右电机 PWM（EN）
 #define MOTOR_R_DIR                 (P21_5)                     // 右电机 方向（PH）
 #define MOTOR_DIR_HIGH_FORWARD      (1)                         // 1 = 方向脚高电平正转
+#define MOTOR_L_PIN                 (P21_2)                     // 左电机 EN 的 GPIO 名（上电先拉低用，和 MOTOR_L_PWM 同一个脚）
+#define MOTOR_R_PIN                 (P21_4)                     // 右电机 EN 的 GPIO 名
 #define MOTOR_DUTY_STEP             (1000)                      // 按键1/2 一次加减多少（1000 = 10%）
 
 // ============================================ 页面内部状态 ============================================
@@ -52,16 +54,23 @@ static const char *motor_line[MOTOR_LINE_NUM];
 static uint8       motor_text_ok;
 
 //-------------------------------------------------------------------------------------------------------------------
-// 函数简介     电机 PWM / 方向脚初始化（懒初始化，只做一次）
+// 函数简介     上电最早期把电机引脚压成安全态：EN 低、DIR 低、PWM 0%
+// 备注信息     ★ 必须在屏幕初始化之前调用（cpu0_main 里紧跟 clock_init 之后）。
+//              P21_2~P21_5 复位后是输入态，驱动板 EN 上的上拉会把电机当成「全速前进」，
+//              上电车就直接冲出去 —— 原来这里是懒初始化，要进「电机输出」页才真正拉低，所以上电会飞车。
+//              顺序也重要：先 gpio 推挽输出低电平，再交给 GTM 出 0% 占空比，切换过程不会冒出高电平毛刺。
 //-------------------------------------------------------------------------------------------------------------------
-static void motor_hw_init (void)
+void menu_motor_safe_init (void)
 {
     if (0 != motor_inited) { return; }
 
-    pwm_init(MOTOR_L_PWM, MOTOR_PWM_FREQ, 0);                   // 占空比 0 = 不动
-    pwm_init(MOTOR_R_PWM, MOTOR_PWM_FREQ, 0);
-    gpio_init(MOTOR_L_DIR, GPO, GPIO_LOW, GPO_PUSH_PULL);
+    gpio_init(MOTOR_L_PIN, GPO, GPIO_LOW, GPO_PUSH_PULL);       // 先把 EN 拉低
+    gpio_init(MOTOR_R_PIN, GPO, GPIO_LOW, GPO_PUSH_PULL);
+    gpio_init(MOTOR_L_DIR, GPO, GPIO_LOW, GPO_PUSH_PULL);       // 方向脚也给个确定电平
     gpio_init(MOTOR_R_DIR, GPO, GPIO_LOW, GPO_PUSH_PULL);
+
+    pwm_init(MOTOR_L_PWM, MOTOR_PWM_FREQ, 0);                   // 0% 占空比 = EN 恒低 = 电机不转
+    pwm_init(MOTOR_R_PWM, MOTOR_PWM_FREQ, 0);
 
     motor_inited = 1;
     motor_duty   = 0;
@@ -209,14 +218,14 @@ static void motor_flush (const char *title, uint8 full)
 
 void menu_motor_draw (uint8 page)
 {
-    motor_hw_init();
+    menu_motor_safe_init();
     motor_build_lines(page);
     motor_flush((MENU_MOTOR_PAGE_ENC == page) ? ("编码器") : ("电机输出"), 1);
 }
 
 void menu_motor_enter (uint8 page)
 {
-    motor_hw_init();
+    menu_motor_safe_init();
     motor_stop();                                               // 进页面先停机，别把上一次的占空比留在轮子上
     motor_build_lines(page);
     motor_flush((MENU_MOTOR_PAGE_ENC == page) ? ("编码器") : ("电机输出"), 1);

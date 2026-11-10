@@ -49,14 +49,28 @@ static void outputs(void)
     pwm_set_duty(CAR_SERVO_PWM,servo_duty(controller.servo_us));
 }
 #endif
+/* 上电第一时间要做的安全动作：两个 EN(PWM) 脚推挽输出低、两个 DIR 脚给确定电平、PWM 0%。
+ * ★ P21_2~P21_5 复位后是输入态，驱动板 EN 的上拉会把电机当成「全速前进」，上电车会直接冲出去。
+ *   所以这个函数必须在屏幕初始化（几百 ms）之前调用，见 cpu0_main.c 的第 0 步。 */
+void car_board_motor_safe(void)
+{
+    gpio_init(CAR_MOTOR_L_PIN,GPO,GPIO_LOW,GPO_PUSH_PULL);
+    gpio_init(CAR_MOTOR_R_PIN,GPO,GPIO_LOW,GPO_PUSH_PULL);
+    gpio_init(CAR_MOTOR_L_DIR,GPO,GPIO_LOW,GPO_PUSH_PULL);
+    gpio_init(CAR_MOTOR_R_DIR,GPO,GPIO_LOW,GPO_PUSH_PULL);
+    pwm_init(CAR_MOTOR_L_PWM,CAR_MOTOR_HZ,0);
+    pwm_init(CAR_MOTOR_R_PWM,CAR_MOTOR_HZ,0);
+    controller.pwm_l=0; controller.pwm_r=0;
+}
+
 void car_board_init(void)
 {
     car_control_init(&controller);
 #if CAR_DRIVE_ENABLE
-    gpio_init(CAR_MOTOR_L_DIR,GPO,CAR_MOTOR_L_FORWARD,GPO_PUSH_PULL);
-    gpio_init(CAR_MOTOR_R_DIR,GPO,CAR_MOTOR_R_FORWARD,GPO_PUSH_PULL);
     pwm_init(CAR_MOTOR_L_PWM,CAR_MOTOR_HZ,0);
     pwm_init(CAR_MOTOR_R_PWM,CAR_MOTOR_HZ,0);
+    gpio_init(CAR_MOTOR_L_DIR,GPO,CAR_MOTOR_L_FORWARD,GPO_PUSH_PULL);
+    gpio_init(CAR_MOTOR_R_DIR,GPO,CAR_MOTOR_R_FORWARD,GPO_PUSH_PULL);
     pwm_init(CAR_SERVO_PWM,CAR_SERVO_HZ,servo_duty(CAR_SERVO_MID_US));
     enc_init();                      /* 编码器：按菜单「编码模式」选 脉冲+方向 / 正交AB，并清计数 */
 #endif
