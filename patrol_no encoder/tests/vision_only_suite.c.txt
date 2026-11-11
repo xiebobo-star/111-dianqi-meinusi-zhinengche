@@ -1,0 +1,142 @@
+#include "car_control.h"
+#include <assert.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#if !CAR_VISION_ONLY || CAR_RING_ENABLE
+#error This suite verifies the default pure vision mode
+#endif
+uint8 mt9v03x_image[MT9V03X_H][MT9V03X_W];
+static car_control c;
+static car_image_info_struct v;
+static void frame(uint32 t)
+{
+    car_control_vision(&c,&v,t); /* Deliberately never supplies IMU samples. */
+}
+static void start(void)
+{
+    car_control_init(&c);
+    memset(&v,0,sizeof(v));
+    v.valid=1; v.confidence=100; v.near_rows=v.mid_rows=v.far_rows=10;
+    assert(!car_control_start(&c,0));
+    frame(20); frame(40); assert(!car_control_start(&c,40));
+    frame(60); assert(!car_control_start(&c,211));
+    assert(car_control_start(&c,60));
+    assert(c.pwm_l==0 && c.pwm_r==0 && !c.ring.imu_ready);
+}
+static void step(uint32 t,int32 l,int32 r)
+{
+    uint16 last_l=c.pwm_l,last_r=c.pwm_r,servo=c.servo_us;
+    frame(t); car_control_tick(&c,l,r,t);
+    assert(c.state==CAR_RUNNING);
+    assert(c.pwm_l<=CAR_OPEN_PWM_LIMIT && c.pwm_r<=CAR_OPEN_PWM_LIMIT);
+    assert((int)c.pwm_l-last_l<=CAR_OPEN_PWM_ACCEL);
+    assert((int)c.pwm_r-last_r<=CAR_OPEN_PWM_ACCEL);
+    assert((int)last_l-c.pwm_l<=CAR_OPEN_PWM_DECEL);
+    assert((int)last_r-c.pwm_r<=CAR_OPEN_PWM_DECEL);
+    assert(abs((int)c.servo_us-servo)<=CAR_SERVO_SLEW_US);
+    assert(c.servo_us>=CAR_SERVO_MIN_US && c.servo_us<=CAR_SERVO_MAX_US);
+    assert(c.speed_pi_l.integral==0 && c.speed_pi_r.integral==0);
+}
+static void road(int shift,int bend)
+{
+    int x,y;
+    memset(mt9v03x_image,40,sizeof(mt9v03x_image));
+    for(y=0;y<120;y++) {
+        int center=94+shift+bend*(111-y)/80;
+        int width=40+y/2;
+        for(x=0;x<188;x++) if(abs(x-center)<width/2) mt9v03x_image[y][x]=210;
+    }
+}
+int main(void)
+{
+    uint32 t;
+    int dir;
+    car_control reference;
+    start(); reference=c;
+    /* Identical images must yield identical outputs for absent or arbitrary encoders. */
+    for(t=80;t<10080;t+=10) {
+        step(t,0,0);
+        car_control_vision(&reference,&v,t);
+        car_control_tick(&reference,t%20?INT_MIN:INT_MAX,t%20?-3000:3000,t);
+        assert(reference.state==c.state && reference.pwm_l==c.pwm_l && reference.pwm_r==c.pwm_r);
+        car_control_motion(&c,NAN,0,t);
+        assert(c.state==CAR_RUNNING && car_control_route(&c)==0);
+    }
+    assert(c.pwm_l==CAR_OPEN_PWM_STRAIGHT && c.pwm_r==CAR_OPEN_PWM_STRAIGHT);
+    assert(!c.stall_l_ms && !c.stall_r_ms);
+    puts("vision-only: zero/random encoders, no IMU, no PI windup, steady duty PASS");
+
+    for(dir=-1;dir<=1;dir+=2) {
+        start();
+        for(t=80;t<2080;t+=10) step(t,0,0);
+        v.err_norm=(int16)(dir*800); v.bend_norm=500;
+        for(t=2080;t<4080;t+=10) step(t,INT_MIN,INT_MAX);
+        assert(((int)c.servo_us-CAR_SERVO_MID_US)*dir>0);
+        assert(((int)c.pwm_l-c.pwm_r)*dir>0);
+        assert(c.speed_plan==CAR_SPEED_BEND);
+        v.err_norm=0; v.bend_norm=0; v.confidence=64;
+        for(t=4080;t<6080;t+=10) step(t,0,0);
+        assert(c.speed_plan==CAR_SPEED_CAUTIOUS);
+        v.confidence=100; v.far_rows=2; step(6080,0,0);
+        assert(c.speed_plan==CAR_SPEED_CAUTIOUS);
+    }
+    /* A bad target cannot escape the final per-wheel hard clamp. */
+    start();
+    for(t=80;t<4080;t+=10) {
+        frame(t); c.speed_plan=100000;
+        car_control_tick(&c,0,0,t);
+        assert(c.pwm_l<=CAR_OPEN_PWM_LIMIT && c.pwm_r<=CAR_OPEN_PWM_LIMIT);
+    }
+    assert(c.pwm_l==CAR_OPEN_PWM_LIMIT);
+    puts("vision-only: both turns, differential, confidence, per-wheel ramp and limits PASS");
+
+    start();
+    for(t=80;t<2080;t+=10) step(t,0,0);
+    v.valid=0; frame(2080); car_control_tick(&c,0,0,2080);
+    assert(c.state==CAR_RUNNING && !c.pwm_l && !c.pwm_r && !c.speed_target);
+    v.valid=1; step(2100,0,0);
+    assert(c.pwm_l<=CAR_OPEN_PWM_ACCEL && c.steering.derivative==0);
+    v.valid=0; frame(2120); frame(2140); frame(2160);
+    assert(c.state==CAR_FAULT_IMAGE && !c.pwm_l && !c.pwm_r);
+    v.valid=1; frame(2180); frame(2200); frame(2220);
+    car_control_tick(&c,0,0,2220); assert(c.state==CAR_FAULT_IMAGE);
+    assert(car_control_start(&c,2220));
+    car_control_tick(&c,0,0,2220); assert(!c.pwm_l && !c.pwm_r);
+    start(); step(80,0,0); car_control_tick(&c,0,0,231);
+    assert(c.state==CAR_FAULT_IMAGE && !c.pwm_l);
+    start(); v.junction=1; v.route_used=1; /* A stray route flag cannot bypass stop. */
+    frame(80); car_control_tick(&c,0,0,80); assert(!c.pwm_l && car_control_route(&c)==0);
+    frame(100); frame(120); assert(c.state==CAR_FAULT_JUNCTION);
+    start(); step(80,0,0); car_control_stop(&c,CAR_FAULT_ESTOP);
+    frame(100); car_control_tick(&c,0,0,100); assert(c.state==CAR_FAULT_ESTOP && !c.pwm_l);
+    start(); v.err_norm=800; frame(80); v.err_norm=-800; frame(80);
+    assert(c.steering.error>0); /* Repeated frame cannot change derivative/target. */
+    car_control_init(&c); v.err_norm=0;
+    frame(0xffffffd0u); frame(0xffffffe0u); frame(0xfffffff0u);
+    assert(car_control_start(&c,4)); step(14,0,0);
+    puts("vision-only: invalid frame cut, recovery ramp, latched faults, restart, timestamp wrap PASS");
+
+    /* End-to-end: actual pixels -> image algorithm -> steering and PWM. */
+    for(dir=-1;dir<=1;dir+=2) {
+        car_control_init(&c); car_image_init(); road(0,0);
+        for(t=20;t<=60;t+=20) { car_image_process(&v); frame(t); }
+        assert(car_control_start(&c,60));
+        road(dir*18,dir*20);
+        for(t=80;t<680;t+=20) {
+            car_image_process(&v); assert(v.valid && v.err_norm*dir>0);
+            frame(t); car_control_tick(&c,0,0,t);
+        }
+        assert(c.state==CAR_RUNNING && ((int)c.servo_us-CAR_SERVO_MID_US)*dir>0);
+        assert(c.pwm_l && c.pwm_r && ((int)c.pwm_l-c.pwm_r)*dir>0);
+        memset(mt9v03x_image,0,sizeof(mt9v03x_image));
+        for(t=680;t<=720;t+=20) {
+            car_image_process(&v); frame(t); car_control_tick(&c,0,0,t);
+        }
+        assert(c.state==CAR_FAULT_IMAGE && !c.pwm_l && !c.pwm_r);
+    }
+    puts("vision-only: synthetic camera frames to left/right steering, PWM and line-loss stop PASS");
+    return 0;
+}

@@ -1,0 +1,91 @@
+#include "car_ring.h"
+#include "car_turn.h"
+#include <assert.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
+/* Link only ring, turn and PID: modules must not depend on control or board. */
+static void test_turn(void)
+{
+    car_image_info_struct v;
+    car_pid_pd pd;
+    car_turn_output out;
+    float left,right;
+    int direction;
+    memset(&v,0,sizeof(v));
+    v.valid=1; v.confidence=100; v.far_rows=10;
+    car_pid_pd_reset(&pd);
+    out=car_turn_plan(&pd,&v,20);
+    assert(out.steer_us==CAR_SERVO_MID_US && out.speed==CAR_SPEED_STRAIGHT);
+    car_turn_wheel_targets(CAR_SERVO_MID_US,out.speed,&left,&right);
+    assert(left==right && left==CAR_SPEED_STRAIGHT);
+    for(direction=-1;direction<=1;direction+=2) {
+        car_pid_pd_reset(&pd);
+        v.err_norm=(int16)(direction*800); v.bend_norm=500;
+        out=car_turn_plan(&pd,&v,20);
+        assert((out.steer_us-CAR_SERVO_MID_US)*direction>0);
+        assert(out.speed==CAR_SPEED_BEND);
+        car_turn_wheel_targets((uint16)out.steer_us,out.speed,&left,&right);
+        assert((left-right)*direction>0);
+        assert(fabsf((left+right)/2-out.speed)<0.0001f);
+    }
+    v.err_norm=0; v.bend_norm=0; v.confidence=64;
+    out=car_turn_plan(&pd,&v,20); assert(out.speed==CAR_SPEED_CAUTIOUS);
+    v.confidence=100; v.far_rows=2;
+    out=car_turn_plan(&pd,&v,20); assert(out.speed==CAR_SPEED_CAUTIOUS);
+}
+
+static void test_ring(void)
+{
+    car_ring r,other;
+    car_image_info_struct v;
+    int i;
+    uint32 end;
+    car_ring_init(&r); car_ring_init(&other);
+    assert(!car_ring_ready(&r,0));
+    assert(car_ring_motion(&r,0,1,0,100));
+    assert(car_ring_ready(&r,100) && !other.imu_ready);
+    memset(&v,0,sizeof(v)); v.valid=1; v.near_rows=10; v.err_far=20;
+    for(i=0;i<CAR_RING_HINT_FRAMES;i++)
+        assert(!car_ring_vision(&r,&v,0,110+(uint32)i));
+    v.junction=1;
+    assert(car_ring_vision(&r,&v,2,130));
+    assert(r.state==CAR_RING_ENTER && car_ring_route(&r)==1);
+    assert(other.state==CAR_RING_APPROACH && other.direction==0);
+    assert(car_ring_limit_speed(&r,CAR_SPEED_STRAIGHT)==CAR_RING_SPEED);
+    assert(!car_ring_vision(&r,&v,0,140));
+
+    /* Total deadline and IMU deadline are separate checks. */
+    r.state=CAR_RING_INSIDE; r.yaw_deg=180;
+    end=r.start_ms+CAR_RING_TIMEOUT_MS;
+    r.imu_ms=end;
+    assert(car_ring_check(&r,end)==CAR_RING_CHECK_OK);
+    assert(car_ring_check(&r,end+1)==CAR_RING_CHECK_LIMIT);
+    r.imu_ready=0;
+    assert(car_ring_check(&r,end+1)==CAR_RING_CHECK_IMU);
+
+    /* Restart preserves a fresh IMU sample but clears previous lap decisions. */
+    assert(car_ring_motion(&r,0,1,0,500));
+    r.completed=1;
+    car_ring_restart(&r);
+    assert(r.state==CAR_RING_APPROACH && !r.completed && !r.direction);
+    assert(!r.hint_frames && !r.yaw_deg && r.imu_ms==500 && r.imu_ready);
+    assert(car_ring_limit_speed(&r,CAR_SPEED_STRAIGHT)==CAR_SPEED_STRAIGHT);
+
+    /* Integrating across unsigned clock wrap must use the short interval. */
+    car_ring_init(&r);
+    assert(car_ring_motion(&r,0,1,0,0xfffffff0u));
+    r.state=CAR_RING_INSIDE; r.direction=-1; r.start_ms=0xfffffff0u;
+    assert(car_ring_motion(&r,-100,1,1,4));
+    assert(fabsf(r.yaw_deg-2.0f)<0.0001f);
+    assert(car_ring_check(&r,4)==CAR_RING_CHECK_OK);
+    assert(!car_ring_motion(&r,NAN,1,1,14) && !r.imu_ready);
+}
+
+int main(void)
+{
+    test_turn(); test_ring();
+    puts("modules: independent link, left/right turns, cautious speed, isolated ring state, deadlines, restart, clock wrap PASS");
+    return 0;
+}

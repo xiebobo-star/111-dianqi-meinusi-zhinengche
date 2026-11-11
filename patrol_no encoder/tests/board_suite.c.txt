@@ -1,0 +1,48 @@
+#include "car_board.h"
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+uint8 mt9v03x_image[MT9V03X_H][MT9V03X_W];
+static uint32 now,duty[3],initializations,irq=7;
+static int stop_released=1;
+void gpio_init(int pin,int mode,int level,int type)
+{ (void)pin; (void)mode; (void)level; (void)type; }
+int gpio_get_level(int pin) { assert(pin==P11_3); return stop_released; }
+void pwm_init(int channel,uint32 hz,uint32 value)
+{ assert(hz>0); duty[channel]=value; initializations++; }
+void pwm_set_duty(int channel,uint32 value) { duty[channel]=value; }
+uint32 interrupt_global_disable(void) { uint32 old=irq; irq=0; return old; }
+void interrupt_global_enable(uint32 state) { irq=state; }
+uint32 system_getval_ms(void) { return now; }
+int main(void)
+{
+    car_control c;
+    car_image_info_struct v;
+    memset(&v,0,sizeof(v)); v.valid=1; v.confidence=100; v.far_rows=10;
+    car_board_init(); assert(car_board_imu_init());
+    assert(!duty[0] && !duty[1]);
+    for(now=20;now<=60;now+=20) car_board_vision(&v,now);
+    now=60;
+#if CAR_DRIVE_ENABLE
+    assert(initializations==3);
+    assert(duty[2]==(uint32)CAR_SERVO_MID_US*CAR_SERVO_HZ*PWM_DUTY_MAX/1000000UL);
+    assert(car_board_start());
+    for(now=80;now<2080;now+=10) { car_board_vision(&v,now); car_board_tick(); }
+    car_board_status(&c); assert(c.state==CAR_RUNNING && duty[0]>0 && duty[1]>0);
+    stop_released=0; car_board_tick(); /* Key4 cuts PWM without any new main-loop frame. */
+    car_board_status(&c); assert(c.state==CAR_FAULT_ESTOP && !duty[0] && !duty[1]);
+    assert(!car_board_start());
+    stop_released=1;
+    for(now=2100;now<=2140;now+=20) car_board_vision(&v,now);
+    now=2140; assert(car_board_start());
+    now=2160; car_board_vision(&v,now); car_board_tick(); assert(duty[0]>0);
+    now=2311; car_board_tick(); car_board_status(&c);
+    assert(c.state==CAR_FAULT_IMAGE && !duty[0] && !duty[1]);
+#else
+    assert(!initializations && !car_board_start());
+    car_board_tick(); car_board_status(&c); assert(c.state==CAR_STOPPED);
+#endif
+    car_board_stop(); assert(irq==7 && !duty[0] && !duty[1]);
+    printf("board: drive=%d, no encoder/IMU linkage, init/key4/timeout/IRQ PASS\n",CAR_DRIVE_ENABLE);
+    return 0;
+}
