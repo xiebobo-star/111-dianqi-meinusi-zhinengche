@@ -1,0 +1,213 @@
+#include "car_control.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+uint8 mt9v03x_image[MT9V03X_H][MT9V03X_W];
+static car_image_info_struct v;
+static car_control c;
+static void road(int shift,int bend)
+{
+    int x,y;
+    memset(mt9v03x_image,40,sizeof(mt9v03x_image));
+    for(y=0;y<120;y++) {
+        int center=94+shift+bend*(111-y)/80;
+        int width=40+y/2;
+        for(x=0;x<188;x++) if(abs(x-center)<width/2) mt9v03x_image[y][x]=210;
+    }
+}
+static void process(void) { car_image_process(&v); }
+static void good(uint32 t)
+{
+    memset(&v,0,sizeof(v)); v.valid=1; v.confidence=100; v.far_rows=10;
+    v.near_rows=v.mid_rows=10;
+    car_control_motion(&c,0,1,t);
+    car_control_vision(&c,&v,t);
+}
+static void start(void)
+{
+    car_control_init(&c); good(20); good(40); good(60);
+    assert(car_control_start(&c,60));
+}
+int main(void)
+{
+    int i,y;
+    car_image_init(); road(0,0); process();
+    assert(v.valid && abs(v.err_norm)<20 && !v.junction && v.confidence>=90);
+    car_image_init(); road(18,0); process(); assert(v.valid && v.err_norm>150);
+    car_image_init(); road(-18,0); process(); assert(v.valid && v.err_norm< -150);
+    car_image_init(); road(0,30); process(); assert(v.valid && v.err_norm>0 && v.bend_norm>150);
+    car_image_init(); road(0,-30); process(); assert(v.valid && v.err_norm<0 && v.bend_norm>150);
+    car_image_init(); road(0,0);
+    for(y=74;y<=77;y++) memset(mt9v03x_image[y],40,188);
+    process(); assert(v.valid && abs(v.err_norm)<20);
+    /* Thin dark vertical seam in white road must not create two paths. */
+    road(0,0); for(y=0;y<120;y++) mt9v03x_image[y][94]=40;
+    process(); assert(v.valid && !v.junction && abs(v.err_norm)<20);
+    /* Broad transverse gap cannot be bridged indefinitely. */
+    road(0,0); for(y=60;y<88;y++) memset(mt9v03x_image[y],40,188);
+    process(); assert(!v.valid);
+    car_image_init(); road(0,0); process();
+    /* A sudden wide white merge is an ambiguous junction. */
+    road(0,0); for(y=40;y<=85;y++) memset(mt9v03x_image[y]+8,210,172);
+    process(); assert(v.junction);
+    for(i=0;i<2;i++) {
+        memset(mt9v03x_image,i?255:0,sizeof(mt9v03x_image)); process(); assert(!v.valid);
+    }
+    car_image_init(); road(0,0);
+    for(y=0;y<120;y++) for(i=0;i<188;i++) mt9v03x_image[y][i]=mt9v03x_image[y][i]>100?110:100;
+    process(); assert(!v.valid);
+    /* Distant strip alone cannot validate the near driving corridor. */
+    memset(mt9v03x_image,40,sizeof(mt9v03x_image));
+    for(y=32;y<59;y++) memset(mt9v03x_image[y]+60,210,68);
+    process(); assert(!v.valid);
+    /* Exercise all segment boundaries and bounded normalized outputs. */
+    srand(264);
+    for(i=0;i<100;i++) {
+        int j;
+        for(y=0;y<120;y++) for(j=0;j<188;j++) mt9v03x_image[y][j]=(uint8)rand();
+        process(); assert(v.err_norm>=-1000 && v.err_norm<=1000 && v.confidence<=100);
+        for(y=0;y<CAR_IMG_SCAN_ROWS;y++) assert(v.center[y]<188);
+    }
+    puts("vision: straight, shifts, curves, seams, gap, junction, contrast, noise PASS");
+    car_control_init(&c); assert(!car_control_start(&c,0));
+    good(10); good(20); assert(!car_control_start(&c,20)); good(30);
+    assert(!car_control_start(&c,200));
+    start(); good(80);
+    for(i=80;i<1000;i+=10) {
+        good((uint32)i); car_control_tick(&c,5,5,(uint32)i);
+        assert(c.pwm_l<=CAR_MOTOR_LIMIT && c.pwm_r<=CAR_MOTOR_LIMIT);
+        assert(c.servo_us>=CAR_SERVO_MIN_US && c.servo_us<=CAR_SERVO_MAX_US);
+    }
+    assert(c.state==CAR_RUNNING && c.speed_target>10);
+    car_control_motion(&c,0,1,1190); /* stale camera is checked independently */
+    /* A long IMU gap also latches a fault; use a fresh controller for camera timeout. */
+    start(); good(80); c.ring.imu_ms=1200;
+    car_control_tick(&c,5,5,1200); assert(c.state==CAR_FAULT_IMAGE && c.pwm_l==0);
+    good(1220); car_control_tick(&c,0,0,1220); assert(c.state==CAR_FAULT_IMAGE);
+    start(); good(80); v.err_norm=900; car_control_vision(&c,&v,100);
+    car_control_tick(&c,0,0,100); assert(c.servo_us>CAR_SERVO_MID_US);
+    assert(c.target_l>c.target_r);
+    assert(c.speed_plan<CAR_SPEED_STRAIGHT);
+    v.err_norm=-1000; car_control_vision(&c,&v,100); assert(c.steering.error>0); /* duplicate */
+    start(); v.valid=0;
+    car_control_vision(&c,&v,80); car_control_tick(&c,0,0,80); assert(c.pwm_l==0);
+    car_control_vision(&c,&v,100); car_control_vision(&c,&v,120);
+    assert(c.state==CAR_FAULT_IMAGE);
+    start(); v.junction=1;
+    car_control_vision(&c,&v,80); car_control_vision(&c,&v,100); car_control_vision(&c,&v,120);
+    assert(c.state==CAR_FAULT_JUNCTION);
+    start(); good(80); car_control_tick(&c,-20,0,80); assert(c.state==CAR_FAULT_ENCODER);
+    start(); good(80); car_control_tick(&c,3000,0,80); assert(c.state==CAR_FAULT_ENCODER);
+    start();
+    for(i=80;i<6000 && c.state==CAR_RUNNING;i+=10) {
+        good((uint32)i); car_control_tick(&c,0,0,(uint32)i);
+    }
+    assert(c.state==CAR_FAULT_STALL && c.pwm_l==0 && c.speed_pi_l.integral==0);
+    /* Saturation must not grow integral forever; overspeed unwinds it. */
+    start();
+    for(i=80;i<5080;i+=10) {
+        good((uint32)i); c.speed_plan=400;
+        car_control_tick(&c,10,10,(uint32)i);
+        assert(c.speed_pi_l.integral<=CAR_MOTOR_LIMIT && c.pwm_l<=CAR_MOTOR_LIMIT);
+    }
+    for(i=5080;i<6080;i+=10) {
+        good((uint32)i); car_control_tick(&c,100,100,(uint32)i);
+    }
+    assert(c.pwm_l==0 && c.pwm_r==0);
+    start(); good(80);
+    car_control_stop(&c,CAR_FAULT_ESTOP); car_control_tick(&c,0,0,90);
+    assert(c.pwm_l==0 && c.pwm_r==0 && c.state==CAR_FAULT_ESTOP);
+    /* uint32 millisecond clock wrap remains valid. */
+    car_control_init(&c); good(0xffffffd0u); good(0xffffffe0u); good(0xfffffff0u);
+    assert(car_control_start(&c,4)); good(14); car_control_tick(&c,0,0,24);
+    assert(c.state==CAR_RUNNING);
+    puts("control: start gate, ramp, limits, timing, faults, stall, clock wrap PASS");
+    /* Reset must remove old derivative after a missing frame. */
+    start(); good(80); v.err_norm=800; car_control_vision(&c,&v,100);
+    assert(c.steering.derivative>0);
+    v.valid=0; car_control_vision(&c,&v,120);
+    v.valid=1; v.err_norm=0; car_control_vision(&c,&v,140);
+    assert(c.steering.derivative==0 && c.steer_target==CAR_SERVO_MID_US);
+    /* A merge is traversable only with a requested side and visible edge. */
+    car_image_init(); road(0,0); process(); car_image_set_route(-1);
+    for(y=32;y<=85;y++) {
+        int x; for(x=94;x<186;x++) mt9v03x_image[y][x]=210;
+    }
+    process(); assert(v.valid && v.junction && v.route_used && abs(v.err_norm)<30);
+    memset(mt9v03x_image,210,sizeof(mt9v03x_image)); process();
+    assert(!v.valid && !v.route_used);
+    car_image_init(); road(0,0); process(); car_image_set_route(1);
+    for(y=32;y<=85;y++) memset(mt9v03x_image[y]+2,210,93);
+    process(); assert(v.valid && v.junction && v.route_used && abs(v.err_norm)<30);
+    car_image_set_route(0);
+    puts("vision routing: left/right visible merge edges, all-white rejection PASS");
+    /* Same sequence in both directions: entry, ~one revolution, exit, done.
+     * This is a state-machine test, not a claim of real camera performance. */
+    for(i=-1;i<=1;i+=2) {
+        uint32 t;
+        start(); good(80); v.err_far=(int16)(20*i);
+        for(t=81;t<=121;t+=20) {
+            car_control_motion(&c,0,1,t);
+            car_control_vision(&c,&v,t);
+        }
+        v.junction=1;
+        car_control_motion(&c,0,1,140); car_control_vision(&c,&v,140);
+        car_control_motion(&c,0,1,160); car_control_vision(&c,&v,160);
+        assert(c.ring.state==CAR_RING_ENTER && c.ring.direction==i);
+        assert(car_control_route(&c)==i);
+        v.route_used=1;
+        for(t=180;t<=360;t+=20) {
+            car_control_motion(&c,200.0f*i,1,t);
+            car_control_vision(&c,&v,t); car_control_tick(&c,6,6,t);
+            assert(c.state==CAR_RUNNING && c.speed_plan<=CAR_RING_SPEED);
+        }
+        v.junction=0; v.route_used=0;
+        for(t=380;t<=440;t+=20) {
+            car_control_motion(&c,200.0f*i,1,t);
+            car_control_vision(&c,&v,t); car_control_tick(&c,6,6,t);
+        }
+        assert(c.ring.state==CAR_RING_INSIDE && car_control_route(&c)==0);
+        for(t=460;t<=1700;t+=20) {
+            car_control_motion(&c,200.0f*i,1,t);
+            car_control_vision(&c,&v,t); car_control_tick(&c,6,6,t);
+        }
+        assert(c.ring.yaw_deg>=300 && !c.ring.completed);
+        v.junction=1;
+        for(t=1720;t<=1740;t+=20) {
+            car_control_motion(&c,100.0f*i,1,t); car_control_vision(&c,&v,t);
+        }
+        assert(c.ring.state==CAR_RING_EXIT && car_control_route(&c)==-i);
+        v.route_used=1;
+        for(t=1760;t<=1900;t+=20) {
+            car_control_motion(&c,0,1,t); car_control_vision(&c,&v,t);
+            car_control_tick(&c,6,6,t);
+        }
+        v.junction=0; v.route_used=0;
+        for(t=1920;t<=2000;t+=20) {
+            car_control_motion(&c,0,1,t); car_control_vision(&c,&v,t);
+            car_control_tick(&c,6,6,t);
+        }
+        assert(c.state==CAR_RUNNING && c.ring.state==CAR_RING_DONE && c.ring.completed==1);
+        assert(car_control_route(&c)==0);
+    }
+    /* IMU absence, invalid read, dropout, reversed yaw, and ring timeout. */
+    start(); c.ring.imu_ready=0; car_control_stop(&c,CAR_STOPPED);
+    good(80); good(100); good(120); c.ring.imu_ready=0;
+    assert(!car_control_start(&c,120));
+    start(); car_control_motion(&c,0,0,80); assert(c.state==CAR_FAULT_IMU);
+    start(); car_control_motion(&c,0,1,120); assert(c.state==CAR_FAULT_IMU);
+    start(); c.ring.state=CAR_RING_INSIDE; c.ring.direction=1; c.ring.start_ms=60;
+    c.ring.yaw_deg=-31; good(80); car_control_tick(&c,6,6,80); assert(c.state==CAR_FAULT_RING);
+    start(); c.ring.state=CAR_RING_INSIDE; c.ring.direction=1; c.ring.start_ms=60;
+    c.ring.yaw_deg=431; good(80); car_control_tick(&c,6,6,80); assert(c.state==CAR_FAULT_RING);
+    start(); c.ring.state=CAR_RING_ENTER; c.ring.direction=1; c.ring.start_ms=c.ring.phase_ms=60;
+    c.ring.imu_ms=3100; c.frame_ms=3100; car_control_tick(&c,6,6,3100);
+    assert(c.state==CAR_FAULT_RING);
+    start(); c.ring.state=CAR_RING_INSIDE; c.ring.direction=1; c.ring.start_ms=60; c.ring.yaw_deg=180;
+    v.junction=1; v.route_used=0;
+    car_control_vision(&c,&v,80); car_control_vision(&c,&v,100); car_control_vision(&c,&v,120);
+    assert(c.state==CAR_FAULT_JUNCTION && !c.ring.completed);
+    puts("ring: both directions, single lap, exit, early fork, IMU/angle/deadline faults PASS");
+    return 0;
+}

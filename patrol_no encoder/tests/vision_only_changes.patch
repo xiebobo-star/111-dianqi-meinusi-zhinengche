@@ -1,0 +1,263 @@
+--- before/user/car_board.c
++++ after/user/car_board.c
+@@ -57,18 +57,24 @@
+     pwm_init(CAR_MOTOR_L_PWM,CAR_MOTOR_HZ,0);
+     pwm_init(CAR_MOTOR_R_PWM,CAR_MOTOR_HZ,0);
+     pwm_init(CAR_SERVO_PWM,CAR_SERVO_HZ,servo_duty(CAR_SERVO_MID_US));
++#if !CAR_VISION_ONLY
+     encoder_dir_init(CAR_ENC_L_TIMER,CAR_ENC_L_A,CAR_ENC_L_B);
+     encoder_dir_init(CAR_ENC_R_TIMER,CAR_ENC_R_A,CAR_ENC_R_B);
+     encoder_clear_count(CAR_ENC_L_TIMER); encoder_clear_count(CAR_ENC_R_TIMER);
++#endif
+ #endif
+ }
+ /* Only PIT calls tick. Main accesses controller with interrupt state restored. */
+ void car_board_tick(void)
+ {
+ #if CAR_DRIVE_ENABLE
++#if CAR_VISION_ONLY
++    int32 l=0,r=0;
++#else
+     int32 l=(int32)encoder_get_count(CAR_ENC_L_TIMER)*CAR_ENC_L_SIGN;
+     int32 r=(int32)encoder_get_count(CAR_ENC_R_TIMER)*CAR_ENC_R_SIGN;
+     encoder_clear_count(CAR_ENC_L_TIMER); encoder_clear_count(CAR_ENC_R_TIMER);
++#endif
+     /* Physical key4 stop has bounded latency even while the display blocks. */
+     if(!gpio_get_level(P11_3)) car_control_stop(&controller,CAR_FAULT_ESTOP);
+ #if CAR_RING_ENABLE
+--- before/user/car_config.h
++++ after/user/car_config.h
+@@ -4,7 +4,12 @@
+ /* TC264D / C chassis / MT9V034 / BDS300. See ../ADAPTATION.md.
+  * Hardware values below are commissioning defaults, NOT measured values. */
+ #ifndef CAR_DRIVE_ENABLE
+-#define CAR_DRIVE_ENABLE        0   /* Set 1 only after checking motor driver/wiring. */
++#define CAR_DRIVE_ENABLE        1   /* Outputs enabled; key3 starts, key4 stops. */
++#endif
++/* Pure vision steering + open-loop motor duty. No encoder or IMU needed.
++ * Set 0 to restore the legacy encoder PI + IMU ring configuration. */
++#ifndef CAR_VISION_ONLY
++#define CAR_VISION_ONLY          1
+ #endif
+ #define CAR_USE_IPS200          1
+ #define CAR_CONTROL_MS          10
+@@ -16,7 +21,12 @@
+ /* One loop then exit at the same junction. AUTO needs a stable visible bend;
+  * -1 selects the left branch, +1 the right branch, 0 infers from approach.
+  * These are image-relative directions, not compass directions. */
+-#define CAR_RING_ENABLE          1
++#ifndef CAR_RING_ENABLE
++#define CAR_RING_ENABLE          (!CAR_VISION_ONLY)
++#endif
++#if CAR_VISION_ONLY && CAR_RING_ENABLE
++#error Pure vision mode cannot use the IMU-dependent ring state machine
++#endif
+ #define CAR_RING_ENTRY_DIR       0
+ #define CAR_RING_SPEED           6.0f
+ #define CAR_RING_CLEAR_FRAMES    4
+@@ -66,13 +76,40 @@
+ #define CAR_STEER_KD            6.0f   /* us*s / normalized error */
+ #define CAR_STEER_D_ALPHA       0.25f
+ 
+-/* Speed unit: signed encoder counts per 10 ms, NOT RPM or m/s.
+- * Left/right encoder gearing must match. No assumed pulses/wheel turn. */
++/* Open-loop values are PWM duty / 10000, NOT measured speed.
++ * Low-speed commissioning defaults; tune for the actual battery and motors.
++ * No automatic boost when the motor fails to move. */
++#define CAR_OPEN_PWM_STRAIGHT    1100
++#define CAR_OPEN_PWM_BEND        800
++#define CAR_OPEN_PWM_CAUTIOUS    650
++#define CAR_OPEN_PWM_LIMIT       1500
++#define CAR_OPEN_PWM_ACCEL       10  /* Max increase per wheel per 10 ms. */
++#define CAR_OPEN_PWM_DECEL       40  /* Normal decrease; faults cut immediately. */
++#define CAR_OPEN_PWM_TRIM_L      1.0f
++#define CAR_OPEN_PWM_TRIM_R      1.0f
++#if CAR_OPEN_PWM_CAUTIOUS <= 0 || CAR_OPEN_PWM_CAUTIOUS > CAR_OPEN_PWM_BEND || CAR_OPEN_PWM_BEND > CAR_OPEN_PWM_STRAIGHT || CAR_OPEN_PWM_STRAIGHT > CAR_OPEN_PWM_LIMIT || CAR_OPEN_PWM_LIMIT > CAR_MOTOR_LIMIT
++#error Invalid open-loop PWM ordering or limit
++#endif
++#if CAR_OPEN_PWM_ACCEL <= 0 || CAR_OPEN_PWM_DECEL <= 0
++#error Open-loop PWM ramp steps must be positive
++#endif
++
++/* Planner units depend on mode: duty in vision mode, counts/10 ms otherwise.
++ * These aliases keep turn planning independent of the motor feedback mode. */
++#if CAR_VISION_ONLY
++#define CAR_SPEED_STRAIGHT      ((float)CAR_OPEN_PWM_STRAIGHT)
++#define CAR_SPEED_BEND          ((float)CAR_OPEN_PWM_BEND)
++#define CAR_SPEED_CAUTIOUS      ((float)CAR_OPEN_PWM_CAUTIOUS)
++#define CAR_SPEED_ACCEL         ((float)CAR_OPEN_PWM_ACCEL)
++#define CAR_SPEED_DECEL         ((float)CAR_OPEN_PWM_DECEL)
++#else
++/* Legacy speed unit: encoder counts per 10 ms, NOT RPM or m/s. */
+ #define CAR_SPEED_STRAIGHT      18.0f
+ #define CAR_SPEED_BEND          8.0f
+ #define CAR_SPEED_CAUTIOUS      6.0f
+ #define CAR_SPEED_ACCEL         0.20f /* counts/tick target increment per tick */
+ #define CAR_SPEED_DECEL         1.00f
++#endif
+ #define CAR_SPEED_KP_L          25.0f
+ #define CAR_SPEED_KP_R          25.0f
+ #define CAR_SPEED_KI_L          40.0f /* output / (error*s) */
+--- before/user/car_control.c
++++ after/user/car_control.c
+@@ -8,7 +8,18 @@
+ #include <string.h>
+ #pragma section all "cpu0_dsram"
+ static float clamp(float x,float lo,float hi) { return x<lo?lo:(x>hi?hi:x); }
++#if !CAR_VISION_ONLY
+ static float magnitude(float x) { return x<0 ? -x : x; }
++#else
++/* Applied independently after differential and trim; neither can bypass limits. */
++static uint16 open_pwm_step(uint16 previous,float target)
++{
++    float limit=CAR_OPEN_PWM_LIMIT<CAR_MOTOR_LIMIT ? CAR_OPEN_PWM_LIMIT : CAR_MOTOR_LIMIT;
++    target=clamp(target,0,limit);
++    return (uint16)clamp(previous+clamp(target-previous,
++                         -CAR_OPEN_PWM_DECEL,CAR_OPEN_PWM_ACCEL),0,limit);
++}
++#endif
+ static uint8 increment(uint8 x) { return x<255 ? x+1 : x; }
+ void car_control_stop(car_control *c, uint8 reason)
+ {
+@@ -33,9 +44,13 @@
+ }
+ void car_control_motion(car_control *c,float yaw_dps,uint8 valid,uint32 now)
+ {
++#if CAR_VISION_ONLY
++    (void)c; (void)yaw_dps; (void)valid; (void)now;
++#else
+     uint8 ok=car_ring_motion(&c->ring,yaw_dps,valid,c->state==CAR_RUNNING,now);
+     if(!ok && CAR_RING_ENABLE && c->state==CAR_RUNNING)
+         car_control_stop(c,CAR_FAULT_IMU);
++#endif
+ }
+ void car_control_vision(car_control *c,const car_image_info_struct *v,uint32 time)
+ {
+@@ -92,11 +107,16 @@
+     if(now-c->frame_ms>CAR_FRAME_TIMEOUT_MS) {
+         car_control_stop(c,CAR_FAULT_IMAGE); return;
+     }
++#if !CAR_VISION_ONLY
+     if(left< -5 || right< -5 || left>CAR_ENC_MAX_PER_TICK || right>CAR_ENC_MAX_PER_TICK) {
+         car_control_stop(c,CAR_FAULT_ENCODER); return;
+     }
+     c->speed_l+=CAR_SPEED_FILTER*(left-c->speed_l);
+     c->speed_r+=CAR_SPEED_FILTER*(right-c->speed_r);
++#else
++    (void)left; (void)right; /* Damaged/disconnected encoder signals are ignored. */
++    c->speed_l=c->speed_r=0; /* Unavailable, not an estimate; telemetry says NA. */
++#endif
+     step=clamp(c->speed_plan-c->speed_target,-CAR_SPEED_DECEL,CAR_SPEED_ACCEL);
+     c->speed_target+=step;
+     step=clamp(c->steer_target-c->servo_us,-CAR_SERVO_SLEW_US,CAR_SERVO_SLEW_US);
+@@ -104,16 +124,22 @@
+     if(c->speed_plan<=0) {
+         c->pwm_l=c->pwm_r=0;
+         car_pid_pi_reset(&c->speed_pi_l); car_pid_pi_reset(&c->speed_pi_r);
++        c->speed_target=0; /* Restart the ramp after a missing/ambiguous frame. */
+         c->target_l=c->target_r=0;
+         c->stall_l_ms=c->stall_r_ms=0; return;
+     }
+     car_turn_wheel_targets(c->servo_us,c->speed_target,&c->target_l,&c->target_r);
++#if CAR_VISION_ONLY
++    c->pwm_l=open_pwm_step(c->pwm_l,c->target_l*CAR_OPEN_PWM_TRIM_L);
++    c->pwm_r=open_pwm_step(c->pwm_r,c->target_r*CAR_OPEN_PWM_TRIM_R);
++#else
+     c->pwm_l=car_pid_speed_step(&c->speed_pi_l,c->target_l,c->speed_l,CAR_SPEED_KP_L,CAR_SPEED_KI_L);
+     c->pwm_r=car_pid_speed_step(&c->speed_pi_r,c->target_r,c->speed_r,CAR_SPEED_KP_R,CAR_SPEED_KI_R);
+     c->stall_l_ms=(c->pwm_l>=CAR_STALL_PWM && magnitude(c->speed_l)<1) ? c->stall_l_ms+CAR_CONTROL_MS : 0;
+     c->stall_r_ms=(c->pwm_r>=CAR_STALL_PWM && magnitude(c->speed_r)<1) ? c->stall_r_ms+CAR_CONTROL_MS : 0;
+     if(c->stall_l_ms>=CAR_STALL_MS || c->stall_r_ms>=CAR_STALL_MS)
+         car_control_stop(c,CAR_FAULT_STALL);
++#endif
+ }
+ const char *car_control_state_name(uint8 state)
+ {
+--- before/user/car_control.h
++++ after/user/car_control.h
+@@ -14,6 +14,8 @@
+     car_pid_pd steering;
+     car_pid_pi speed_pi_l, speed_pi_r;
+     float steer_target;
++    /* plan/target: PWM duty in vision mode, encoder counts/10 ms in legacy mode.
++     * speed_l/r: measured counts only in legacy mode; unavailable in vision mode. */
+     float speed_plan, speed_target, target_l, target_r, speed_l, speed_r;
+     uint16 stall_l_ms, stall_r_ms, servo_us, pwm_l, pwm_r;
+     car_ring ring;                          // 圆环模块独立状态，包含 IMU 时效及累计转角
+@@ -23,7 +25,7 @@
+ uint8 car_control_start(car_control *c, uint32 now);
+ void car_control_stop(car_control *c, uint8 reason);
+ void car_control_tick(car_control *c, int32 left, int32 right, uint32 now);
+-/* Calibrated signed deg/s, sampled by the 10 ms board interrupt. */
++/* Legacy only: calibrated signed deg/s; ignored entirely in vision mode. */
+ void car_control_motion(car_control *c, float yaw_dps, uint8 valid, uint32 now);
+ int16 car_control_route(const car_control *c);
+ const char *car_control_state_name(uint8 state);
+--- before/user/car_turn.h
++++ after/user/car_turn.h
+@@ -9,7 +9,7 @@
+ 
+ typedef struct {
+     float steer_us;                         // 目标舵机脉宽，单位 us
+-    float speed;                            // 平均目标速度，单位编码器计数/10 ms
++    float speed;                            // 纯视觉模式为 PWM 占空比数值；传统模式为编码器计数/10 ms
+ } car_turn_output;
+ 
+ // 调度层确认图像有效且岔路已处理后调用；PID 历史由调用方持有。
+--- before/user/cpu0_main.c
++++ after/user/cpu0_main.c
+@@ -1,5 +1,5 @@
+ /* TC264D 白色宽路面循迹 + BDS300 转向 PD + 双编码器速度 PI。
+- * 默认 CAR_DRIVE_ENABLE=0 仅识别，硬件核实后在 car_config.h 启用。
++ * Default: vision-only drive, stopped until key3; key4 stops. See car_config.h.
+  * 调试模式：键1/2曝光，键3阈值，键4显示模式。
+  * 行驶模式：键3启动/停止，键4停车（中断读取），键1/2仅停车时调曝光。
+  * 详见 patrol/ADAPTATION.md。源码保持 GBK。 */
+@@ -257,9 +257,14 @@
+            (CAR_IMG_MODE == CAR_IMG_MODE_SINGLE) ? "single" : "double",
+            (CAR_IMG_LINE_DARK) ? "dark" : "bright");
+ 
++#if CAR_DRIVE_ENABLE && CAR_RING_ENABLE
+     CAM_SCREEN_STRING(0, 40, "IMU: HOLD STILL 2s");
+     if(!car_board_imu_init())
+         CAM_SCREEN_STRING(0, 64, "IMU FAIL: START LOCKED");
++#elif CAR_VISION_ONLY
++    CAM_SCREEN_STRING(0, 40, "VISION / OPEN PWM");
++    printf("control=VISION_ONLY feedback=NONE drive=%d key3=start key4=stop\r\n", CAR_DRIVE_ENABLE);
++#endif
+ 
+     cpu_wait_event_ready();                                     // 等待所有核心初始化完毕
+ 
+@@ -334,6 +339,12 @@
+                 CAM_SCREEN_IMAGE(cam_frame[0], (cam_show_bin ? cam_info.threshold : 0));
+                 cam_draw_overlay(&cam_info);
+                 cam_screen_refresh(&cam_info);
++#if CAR_VISION_ONLY
++                printf("mode:VISION th:%u e:%d bend:%d q:%u junction:%u ctl:%s speed:NA duty_target:%d pwm:%u/%u us:%u\r\n",
++                       cam_info.threshold, cam_info.err_norm, cam_info.bend_norm,
++                       cam_info.confidence, cam_info.junction, car_control_state_name(cam_control.state),
++                       (int)cam_control.speed_target, cam_control.pwm_l, cam_control.pwm_r, cam_control.servo_us);
++#else
+                 printf("th:%u e:%d bend:%d q:%u junction:%u ctl:%s v:%d/%d target:%d pwm:%u/%u us:%u\r\n",
+                        cam_info.threshold, cam_info.err_norm, cam_info.bend_norm,
+                        cam_info.confidence, cam_info.junction, car_control_state_name(cam_control.state),
+@@ -342,6 +353,7 @@
+                 printf("ring:%s dir:%d yaw:%d lap:%u imu:%u\r\n",
+                        car_ring_state_name(cam_control.ring.state), cam_control.ring.direction,
+                        (int)cam_control.ring.yaw_deg, cam_control.ring.completed, cam_control.ring.imu_ready);
++#endif
+             }
+         }
+     }
+--- before/user/isr.c
++++ after/user/isr.c
+@@ -92,7 +92,9 @@
+     {
+         exti_flag_clear(ERU_CH0_REQ0_P15_4);
+ 		
++#if !CAR_VISION_ONLY
+         imu660rc_callback(); 	//			660RC 模块 INT 更新中断
++#endif
+     }
+ 
+     if(exti_flag_get(ERU_CH4_REQ13_P15_5))          // 通道4中断
